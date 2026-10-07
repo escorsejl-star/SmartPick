@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acesso ao sistema</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+      <g stroke="currentColor" stroke-width="3" fill="none">
+        <path d="M-20 420 L330 300"/><path d="M330 300 L560 480"/>
+        <path d="M560 480 L760 330"/><path d="M760 330 L880 -20"/>
+        <path d="M560 480 L640 830"/><path d="M760 330 L1220 480"/>
+      </g>
+      <g fill="#2b3552"><circle cx="760" cy="330" r="11"/><circle cx="330" cy="300" r="7"/><circle cx="560" cy="480" r="7"/></g>
+    </svg>
+  </div>
+
+  <main class="wrap">
+    <section class="roles" aria-label="Tipo de acesso">
+      <button type="button" class="role role--gold is-active" data-role="operador" aria-pressed="true">
+        <span class="role__icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><rect x="8" y="9" width="8" height="6" rx="1"/></svg>
+        </span>
+        <h2>Operador de Coleta</h2>
+        <p>Portal do coletor com rotas guiadas e scanner de código de barras</p>
+        <span class="tag">Acesso Mobile-Web</span>
+      </button>
+
+      <button type="button" class="role role--cyan" data-role="gestor" aria-pressed="false">
+        <span class="role__icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+        </span>
+        <h2>Gestor / Torre de Controle</h2>
+        <p>Dashboard completo com KPIs, mapa do armazém e gestão de pedidos</p>
+        <span class="tag">Acesso Desktop</span>
+      </button>
+    </section>
+
+    <form id="loginForm" class="panel" novalidate>
+      <div class="field">
+        <label for="usuario">ID do usuário</label>
+        <div class="input">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          <input id="usuario" type="text" placeholder="OP-2847" autocomplete="username" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="senha">Senha</label>
+        <div class="input">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input id="senha" type="password" placeholder="Digite sua senha" autocomplete="current-password" required>
+        </div>
+      </div>
+
+      <div class="field" id="turnoField">
+        <label for="turno">Turno (operador)</label>
+        <div class="input input--select">
+          <select id="turno">
+            <option>Manhã — 06:00 às 14:00</option>
+            <option>Tarde — 14:00 às 22:00</option>
+            <option>Noite — 22:00 às 06:00</option>
+          </select>
+        </div>
+      </div>
+
+      <p id="erro" class="erro" role="alert" hidden></p>
+
+      <div class="actions">
+        <button type="submit" class="btn btn--ghost" data-destino="operador">Portal Coletor</button>
+        <button type="submit" class="btn btn--primary" data-destino="gestor">Dashboard Gestão</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

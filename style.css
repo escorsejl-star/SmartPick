@@ -1,0 +1,241 @@
+/* ---------- config geral ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: 'Inter', Arial, sans-serif;
+  color: white;
+  background: linear-gradient(#060d21, #0a1a3d);
+  background-attachment: fixed;
+}
+
+/* fundo com as linhas (svg) */
+.bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: #1a2748;
+  z-index: 0;
+}
+
+.bg svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* caixa que segura tudo no meio da tela */
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 50px 20px;
+}
+
+/* ---------- cards de operador / gestor ---------- */
+.roles {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.role {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px 25px 20px;
+  text-align: center;
+  color: white;
+  font-family: inherit;
+  cursor: pointer;
+  background: #0e2250;
+  border: 1px solid #22407a;
+  border-radius: 20px;
+}
+
+.role:hover {
+  border-color: #6f9bd6;
+}
+
+.role h2 {
+  font-family: 'Exo 2', Arial, sans-serif;
+  font-size: 18px;
+}
+
+.role p {
+  font-size: 14px;
+  color: #6f9bd6;
+}
+
+.role__icon {
+  width: 75px;
+  height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  border: 1px solid;
+}
+
+.tag {
+  margin-top: auto;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: bold;
+  border-radius: 8px;
+  border: 1px solid;
+}
+
+/* cor amarela (operador) */
+.role--gold .role__icon {
+  color: #f5b400;
+  background: #212c48;
+  border-color: #4a4a45;
+}
+
+.role--gold .tag {
+  color: #f5b400;
+  background: #212c48;
+  border-color: #5a4d27;
+}
+
+/* cor azul (gestor) */
+.role--cyan .role__icon {
+  color: #38c8f5;
+  background: #0f2f5e;
+  border-color: #1f4f86;
+}
+
+.role--cyan .tag {
+  color: #38c8f5;
+  background: #0f2f5e;
+  border-color: #1f5c8a;
+}
+
+/* quando o card ta selecionado */
+.role.is-active.role--gold {
+  border-color: #f5b400;
+}
+
+.role.is-active.role--cyan {
+  border-color: #38c8f5;
+}
+
+/* ---------- formulario ---------- */
+.panel {
+  padding: 30px;
+  background: #0e2250;
+  border: 1px solid #22407a;
+  border-radius: 20px;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.field[hidden] {
+  display: none;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #6f9bd6;
+}
+
+.input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 55px;
+  padding: 0 16px;
+  color: #6f9bd6;
+  background: #17336b;
+  border: 1px solid #22407a;
+  border-radius: 12px;
+}
+
+.input:focus-within {
+  border-color: #f5b400;
+}
+
+.input input,
+.input select {
+  flex: 1;
+  height: 100%;
+  font-family: inherit;
+  font-size: 16px;
+  color: white;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+.input input::placeholder {
+  color: #5f83b8;
+}
+
+.input select option {
+  background: #17336b;
+}
+
+.erro {
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #ff8a8a;
+}
+
+/* ---------- botoes ---------- */
+.actions {
+  display: flex;
+  gap: 14px;
+}
+
+.btn {
+  flex: 1;
+  height: 58px;
+  font-family: 'Exo 2', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+}
+
+.btn--ghost {
+  color: #f5b400;
+  background: #212c48;
+  border-color: #5a4d27;
+}
+
+.btn--primary {
+  color: #0a1330;
+  background: #f5b400;
+  border-color: #f5b400;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+/* ---------- celular ---------- */
+@media (max-width: 560px) {
+  .roles,
+  .actions {
+    flex-direction: column;
+  }
+}
