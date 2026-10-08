@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catálogo SKU - SmartPick</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="catalogo.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>📚 <span>Smart</span>Pick</h1>
+      <small>by Telecontrol</small>
+    </div>
+    <p class="menu-titulo">TORRE DE CONTROLE</p>
+    <nav>
+      <a href="#">▦ Overview</a>
+      <a href="#">🗺 Mapa do Armazém</a>
+      <a href="#">📋 Pedidos</a>
+      <a href="#" class="ativo">📦 Catálogo SKU <b>●</b></a>
+    </nav>
+    <div class="usuario">
+      <div class="avatar">G</div>
+      <div>
+        <strong>Gustavo Lima</strong>
+        <small>Gestor · Torre de Controle</small>
+      </div>
+    </div>
+    <p class="coletores">● 7 coletores ativos agora</p>
+    <a href="index.html" class="sair" id="btnSair">⏻ Sair</a>
+  </aside>
+
+  <div class="principal">
+    <header class="topo">
+      <h2>Catálogo SKU</h2>
+      <div>
+        <span id="data"></span>
+        <span class="status">● Sistema Ativo</span>
+      </div>
+    </header>
+
+    <div class="conteudo">
+      <section class="lista">
+        <div class="lista-topo">
+          <h3>Catálogo SKUs <span class="contador" id="contador">8</span></h3>
+          <input type="search" id="busca" placeholder="Buscar SKU..." aria-label="Buscar produtos">
+        </div>
+        <div id="itens"></div>
+      </section>
+
+      <section class="detalhe" aria-label="Detalhes do produto">
+        <div class="detalhe-topo">
+          <div>
+            <p class="codigo" id="d-codigo"></p>
+            <h2 id="d-nome"></h2>
+            <p class="categoria" id="d-categoria"></p>
+          </div>
+          <div class="botoes">
+            <button type="button" class="btn-editar" id="btnEditar">Editar</button>
+            <button type="button" class="btn-salvar" id="btnSalvar">Salvar</button>
+          </div>
+        </div>
+
+        <p class="nivel" id="d-nivel"></p>
+
+        <div class="grade">
+          <section class="caixa">
+            <h4>DIMENSÕES E PESO</h4>
+            <div class="medidas">
+              <div><b id="d-comp"></b><span>Comprimento</span></div>
+              <div><b id="d-larg"></b><span>Largura</span></div>
+              <div><b id="d-alt"></b><span>Altura</span></div>
+              <div><b id="d-peso"></b><span>Peso</span></div>
+            </div>
+          </section>
+          <section class="caixa">
+            <h4>LOCALIZAÇÃO NO ARMAZÉM</h4>
+            <p class="zona" id="d-zona"></p>
+            <p class="endereco" id="d-endereco"></p>
+            <div class="etiquetas" id="d-etiquetas"></div>
+          </section>
+          <section class="caixa">
+            <h4>CÓDIGO DE BARRAS</h4>
+            <div class="barras" id="d-barras" aria-hidden="true"></div>
+            <p class="ean" id="d-ean"></p>
+          </section>
+          <section class="caixa">
+            <h4>ESTOQUE DISPONÍVEL</h4>
+            <p class="qtd" id="d-qtd"></p>
+            <div class="estoque-linha"><span>Estoque mínimo</span><b id="d-min"></b></div>
+            <div class="barra-fundo"><div class="barra-cheia" id="d-barra"></div></div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="Catalogo.js"></script>
+</body>
+</html>

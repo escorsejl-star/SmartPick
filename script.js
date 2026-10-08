@@ -43,7 +43,13 @@ form.addEventListener('submit', async (e) => {
     
     await new Promise(r => setTimeout(r, 600)); 
 
-    window.location.href = perfil === 'operador' ? 'portal-coletor.html' : 'dashboard-gestao.html';
+    sessionStorage.setItem('logado', 'sim');
+    sessionStorage.setItem('perfil', perfil);
+    sessionStorage.setItem('usuario', id);
+    if (perfil === 'operador') sessionStorage.setItem('turno', turno);
+    else sessionStorage.removeItem('turno');
+
+    window.location.href = 'Catalogo.html';
   } catch (err) {
     mostrarErro(err.message || 'Não foi possível entrar. Tente novamente.');
     botoes.forEach(b => (b.disabled = false));
