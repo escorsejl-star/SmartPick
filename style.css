@@ -1,4 +1,3 @@
-/* ---------- config geral ---------- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -12,7 +11,6 @@ body {
   background-attachment: fixed;
 }
 
-/* fundo com as linhas (svg) */
 .bg {
   position: fixed;
   top: 0;
@@ -28,7 +26,6 @@ body {
   height: 100%;
 }
 
-/* caixa que segura tudo no meio da tela */
 .wrap {
   position: relative;
   z-index: 1;
@@ -37,7 +34,6 @@ body {
   padding: 50px 20px;
 }
 
-/* ---------- cards de operador / gestor ---------- */
 .roles {
   display: flex;
   gap: 20px;
@@ -93,7 +89,6 @@ body {
   border: 1px solid;
 }
 
-/* cor amarela (operador) */
 .role--gold .role__icon {
   color: #f5b400;
   background: #212c48;
@@ -106,7 +101,6 @@ body {
   border-color: #5a4d27;
 }
 
-/* cor azul (gestor) */
 .role--cyan .role__icon {
   color: #38c8f5;
   background: #0f2f5e;
@@ -119,7 +113,6 @@ body {
   border-color: #1f5c8a;
 }
 
-/* quando o card ta selecionado */
 .role.is-active.role--gold {
   border-color: #f5b400;
 }
@@ -128,7 +121,6 @@ body {
   border-color: #38c8f5;
 }
 
-/* ---------- formulario ---------- */
 .panel {
   padding: 30px;
   background: #0e2250;
@@ -195,7 +187,6 @@ label {
   color: #ff8a8a;
 }
 
-/* ---------- botoes ---------- */
 .actions {
   display: flex;
   gap: 14px;
@@ -232,7 +223,6 @@ label {
   opacity: 0.85;
 }
 
-/* ---------- celular ---------- */
 @media (max-width: 560px) {
   .roles,
   .actions {

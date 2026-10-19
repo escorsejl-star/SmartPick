@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa do Armazém - SmartPick</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <aside class="sidebar" id="menu"></aside>
+
+  <div class="principal">
+    <header class="topo">
+      <h2>Mapa do Armazém</h2>
+      <div><span id="data"></span><span class="status">● Sistema Ativo</span></div>
+    </header>
+
+    <main class="pagina">
+      <div class="mapa-tela">
+
+        <div class="rota">
+          <h4>ROTA ATIVA · ORD-2251</h4>
+          <div class="card">
+            <div class="coletor-linha"><strong>Progresso</strong><strong class="mono amarelo" id="m-prog"></strong></div>
+            <div class="barra-fundo"><div class="barra-cheia" id="m-barra"></div></div>
+            <div class="nums">
+              <div><span id="m-dist"></span><small>Distância</small></div>
+              <div><span>12min</span><small>Tempo est.</small></div>
+            </div>
+          </div>
+          <div id="listaParadas"></div>
+          <h4 style="margin-top:20px">COLETORES ATIVOS</h4>
+          <div id="listaColetores"></div>
+        </div>
+        <div class="planta-area">
+          <div class="cabeca">
+            <div>
+              <h1>Planta do Armazém</h1>
+              <p class="sub">1.000m² · Rota otimizada · 10 paradas</p>
+            </div>
+            <div class="legenda">
+              <span><i style="background:#10d9a0"></i>Coletado</span>
+              <span><i style="background:#f5b400"></i>Atual</span>
+              <span><i style="background:#7a6a20"></i>Pendente</span>
+              <span><i style="background:#17336b"></i>Livre</span>
+            </div>
+          </div>
+          <div class="card planta-caixa"><div id="planta"></div></div>
+          <div class="stats4">
+            <div class="card"><b class="amarelo">10</b><small>Paradas</small></div>
+            <div class="card"><b class="verde" id="s-coletados"></b><small>Coletados</small></div>
+            <div class="card"><b class="amarelo" id="s-pendentes"></b><small>Pendentes</small></div>
+            <div class="card"><b class="azul" id="s-dist"></b><small>Dist. rest.</small></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="menu.js"></script>
+  <script src="mapa.js"></script>
+</body>
+</html>

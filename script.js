@@ -1,59 +1,71 @@
-const form = document.getElementById('loginForm');
-const roles = document.querySelectorAll('.role');
-const turnoField = document.getElementById('turnoField');
-const erro = document.getElementById('erro');
-const usuario = document.getElementById('usuario');
-let perfil = 'operador';
+var form = document.getElementById('loginForm');
+var cards = document.querySelectorAll('.role');
+var campoTurno = document.getElementById('turnoField');
+var msgErro = document.getElementById('erro');
+var campoUsuario = document.getElementById('usuario');
+var campoSenha = document.getElementById('senha');
+var campoSelectTurno = document.getElementById('turno');
+var botoes = document.querySelectorAll('.btn');
 
-function selecionarPerfil(valor) {
-  perfil = valor;
-  roles.forEach(r => {
-    const ativo = r.dataset.role === valor;
-    r.classList.toggle('is-active', ativo);
-    r.setAttribute('aria-pressed', ativo);
-  });
-  turnoField.hidden = valor !== 'operador';
-  usuario.placeholder = valor === 'operador' ? 'OP-2847' : 'GT-1001';
-}
-roles.forEach(r => r.addEventListener('click', () => selecionarPerfil(r.dataset.role)));
+var perfil = 'operador';
 
-form.querySelectorAll('.btn').forEach(btn =>
-  btn.addEventListener('click', () => selecionarPerfil(btn.dataset.destino))
-);
+function escolherPerfil(novo) {
+  perfil = novo;
 
-function mostrarErro(msg) {
-  erro.textContent = msg;
-  erro.hidden = false;
-}
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  erro.hidden = true;
-
-  const id = usuario.value.trim();
-  const senha = document.getElementById('senha').value;
-  const turno = document.getElementById('turno').value;
-
-  if (!id || !senha) return mostrarErro('Informe o ID do usuário e a senha.');
-
-  const botoes = form.querySelectorAll('.btn');
-  botoes.forEach(b => (b.disabled = true));
-
-  try {
-    
-    await new Promise(r => setTimeout(r, 600)); 
-
-    sessionStorage.setItem('logado', 'sim');
-    sessionStorage.setItem('perfil', perfil);
-    sessionStorage.setItem('usuario', id);
-    if (perfil === 'operador') sessionStorage.setItem('turno', turno);
-    else sessionStorage.removeItem('turno');
-
-    window.location.href = 'Catalogo.html';
-  } catch (err) {
-    mostrarErro(err.message || 'Não foi possível entrar. Tente novamente.');
-    botoes.forEach(b => (b.disabled = false));
+  for (var i = 0; i < cards.length; i++) {
+    var ativo = cards[i].dataset.role == novo;
+    if (ativo) {
+      cards[i].classList.add('is-active');
+    } else {
+      cards[i].classList.remove('is-active');
+    }
+    cards[i].setAttribute('aria-pressed', ativo);
   }
+
+  if (novo == 'operador') {
+    campoTurno.hidden = false;
+    campoUsuario.placeholder = 'OP-2847';
+  } else {
+    campoTurno.hidden = true;
+    campoUsuario.placeholder = 'GT-1001';
+  }
+}
+
+for (var i = 0; i < cards.length; i++) {
+  cards[i].addEventListener('click', function () {
+    escolherPerfil(this.dataset.role);
+  });
+}
+
+for (var j = 0; j < botoes.length; j++) {
+  botoes[j].addEventListener('click', function () {
+    escolherPerfil(this.dataset.destino);
+  });
+}
+
+form.addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  var usuario = campoUsuario.value.trim();
+  var senha = campoSenha.value;
+
+  if (usuario == '' || senha == '') {
+    msgErro.textContent = 'Preencha o ID e a senha!';
+    msgErro.hidden = false;
+    return;
+  }
+
+  msgErro.hidden = true;
+  sessionStorage.setItem('logado', 'sim');
+  sessionStorage.setItem('perfil', perfil);
+  sessionStorage.setItem('usuario', usuario);
+  if (perfil == 'operador') {
+    sessionStorage.setItem('turno', campoSelectTurno.value);
+  } else {
+    sessionStorage.removeItem('turno');
+  }
+
+  window.location.href = 'overview.html';
 });
 
-selecionarPerfil('operador');
+escolherPerfil('operador');

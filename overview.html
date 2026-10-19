@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview - SmartPick</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <aside class="sidebar" id="menu"></aside>
+
+  <div class="principal">
+    <header class="topo">
+      <h2>Overview</h2>
+      <div><span id="data"></span><span class="status">● Sistema Ativo</span></div>
+    </header>
+
+    <main class="pagina">
+      <div class="cabeca">
+        <div>
+          <h1>Torre de Controle</h1>
+          <p class="sub">Turno Tarde em andamento · 7 coletores ativos</p>
+        </div>
+        <span class="status" style="padding:10px 16px;font-size:12px">● Sistema Operacional</span>
+      </div>
+
+      <div class="kpis">
+        <div class="card kpi k-amarelo"><small>PICK RATE</small><em>+18%</em><b class="amarelo">247/h</b><span>Peças por hora · média turno</span></div>
+        <div class="card kpi k-azul"><small>EFICIÊNCIA DE ROTA</small><em>+34%</em><b class="azul">91%</b><span>vs. 57% antes do SmartPick</span></div>
+        <div class="card kpi k-verde"><small>ACURÁCIA</small><b class="verde">99.9%</b><span>18 pedidos · 0 erros hoje</span></div>
+        <div class="card kpi k-roxo"><small>PEDIDOS ATIVOS</small><b class="roxo">18</b><span>5 concluídos · 8 em andamento</span></div>
+      </div>
+
+      <div class="duas-colunas col-graficos">
+        <div class="card grafico">
+          <div class="grafico-topo"><div><h3>Pick Rate por Hora</h3><p class="sub">Turno atual · peças/hora</p></div><b>263</b></div>
+          <svg id="grafico1" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+          <div class="eixo" id="eixo1"></div>
+        </div>
+        <div class="card grafico">
+          <div class="grafico-topo"><div><h3>Eficiência de Rota</h3><p class="sub">Antes e após implantação</p></div></div>
+          <svg id="grafico2" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+          <div class="eixo" id="eixo2"></div>
+        </div>
+      </div>
+
+      <div class="duas-colunas col-baixo">
+        <div class="card"><h3>Status por Zona</h3><div id="zonas"></div></div>
+        <div class="card"><h3>Atividade Recente</h3><ul class="atividade" id="atividade"></ul></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="menu.js"></script>
+  <script src="overview.js"></script>
+</body>
+</html>

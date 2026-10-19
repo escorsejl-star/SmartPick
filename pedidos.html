@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedidos - SmartPick</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <aside class="sidebar" id="menu"></aside>
+
+  <div class="principal">
+    <header class="topo">
+      <h2>Pedidos</h2>
+      <div><span id="data"></span><span class="status">● Sistema Ativo</span></div>
+    </header>
+
+    <main class="pagina">
+      <div class="cabeca">
+        <div>
+          <h1>Gestão de Pedidos</h1>
+          <p class="sub">Atualizado agora</p>
+        </div>
+        <button class="btn-amarelo" id="btnNovo">+ Novo Pedido</button>
+      </div>
+
+      <div class="resumo">
+        <div class="card"><b class="verde" id="r-total"></b><span>Total hoje</span></div>
+        <div class="card"><b class="verde" id="r-concluidos"></b><span>Concluídos</span></div>
+        <div class="card"><b class="azul" id="r-andamento"></b><span>Em Andamento</span></div>
+        <div class="card"><b class="cinza" id="r-pendentes"></b><span>Pendentes</span></div>
+      </div>
+
+      <div class="filtros" id="filtros">
+        <input type="text" id="busca" placeholder="🔍 Buscar pedido ou cliente...">
+        <button class="ativo">Todos</button>
+        <button>Em Andamento</button>
+        <button>Iniciado</button>
+        <button>Pendente</button>
+        <button>Concluído</button>
+      </div>
+
+      <div class="tabela-caixa">
+        <table>
+          <thead>
+            <tr><th>PEDIDO</th><th>CLIENTE</th><th>ITENS</th><th>PESO</th><th>PRIOR.</th><th>COLETOR</th><th>STATUS</th><th>ETA</th><th>PROGRESSO</th></tr>
+          </thead>
+          <tbody id="corpo"></tbody>
+        </table>
+      </div>
+
+      <div class="rodape-tabela">
+        <span id="contagem"></span>
+        <div class="paginas" id="paginas"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="menu.js"></script>
+  <script src="pedidos.js"></script>
+</body>
+</html>
