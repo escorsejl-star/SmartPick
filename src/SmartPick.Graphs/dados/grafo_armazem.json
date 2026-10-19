@@ -1,0 +1,54 @@
+{
+  "versao": 1,
+  "descricao": "Grafo de exemplo do armazem SmartPick. Distancias em metros (valores de exemplo, a confirmar com a Equipe 1).",
+  "vertices": [
+    {"id": "Entrada", "nome": "Entrada", "tipo": "entrada"},
+    {"id": "Saida", "nome": "Saida", "tipo": "saida"},
+    {"id": "L1", "nome": "Corredor lateral esquerdo, topo", "tipo": "corredor"},
+    {"id": "L2", "nome": "Corredor lateral esquerdo, meio", "tipo": "corredor"},
+    {"id": "L3", "nome": "Corredor lateral esquerdo, base", "tipo": "corredor"},
+    {"id": "R1", "nome": "Corredor lateral direito, topo", "tipo": "corredor"},
+    {"id": "R2", "nome": "Corredor lateral direito, meio", "tipo": "corredor"},
+    {"id": "R3", "nome": "Corredor lateral direito, base", "tipo": "corredor"},
+    {"id": "T1", "nome": "Corredor superior, esquerda", "tipo": "corredor"},
+    {"id": "T2", "nome": "Corredor superior, direita", "tipo": "corredor"},
+    {"id": "M1", "nome": "Corredor central, esquerda", "tipo": "corredor"},
+    {"id": "M2", "nome": "Corredor central, direita", "tipo": "corredor"},
+    {"id": "B1", "nome": "Corredor inferior, esquerda", "tipo": "corredor"},
+    {"id": "B2", "nome": "Corredor inferior, direita", "tipo": "corredor"}
+  ],
+  "arestas": [
+    {"origem": "Entrada", "destino": "L3", "distancia": 4, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "R3", "destino": "Saida", "distancia": 4, "acesso": ["manual", "empilhadeira"]},
+
+    {"origem": "L1", "destino": "T1", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "T1", "destino": "T2", "distancia": 7, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "T2", "destino": "R1", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+
+    {"origem": "L2", "destino": "M1", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "M1", "destino": "M2", "distancia": 7, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "M2", "destino": "R2", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+
+    {"origem": "L3", "destino": "B1", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "B1", "destino": "B2", "distancia": 7, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "B2", "destino": "R3", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+
+    {"origem": "L1", "destino": "L2", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "L2", "destino": "L3", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "R1", "destino": "R2", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+    {"origem": "R2", "destino": "R3", "distancia": 8, "acesso": ["manual", "empilhadeira"]},
+
+    {"origem": "T1", "destino": "M1", "distancia": 6, "acesso": ["manual"]},
+    {"origem": "M1", "destino": "B1", "distancia": 6, "acesso": ["manual"]},
+    {"origem": "T2", "destino": "M2", "distancia": 6, "acesso": ["manual"]},
+    {"origem": "M2", "destino": "B2", "distancia": 6, "acesso": ["manual"]}
+  ],
+  "prateleiras": {
+    "P1": "T1",
+    "P2": "T2",
+    "P3": "R1",
+    "P4": "B1",
+    "P5": "B2",
+    "P6": "R3"
+  }
+}
