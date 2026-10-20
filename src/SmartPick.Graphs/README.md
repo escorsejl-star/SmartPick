@@ -1,20 +1,20 @@
 # SmartPick.Graphs
 
-Serviço de grafos e rotas do SmartPick (Equipe 2). Nesta Sprint 1 ele ainda é um protótipo em Python, e na Sprint 2 vira o serviço FastAPI.
+Serviço de grafos e rotas do SmartPick. Ele representa o armazém como um grafo e calcula o menor caminho entre a entrada e cada prateleira, separando o acesso do operador a pé (manual) do acesso da empilhadeira.
 
-Este arquivo vai na pasta `src/SmartPick.Graphs/` do repositório.
+Na Sprint 1 este módulo é um protótipo em Python com NetworkX. Na Sprint 2 ele será exposto como uma API com FastAPI.
 
-## Arquivos
+## Estrutura
 
-| Arquivo | Para que serve |
+| Arquivo | Descrição |
 |---|---|
-| `dados/grafo_armazem.json` | Vértices, arestas (com distância e tipo de acesso) e prateleiras do armazém de exemplo |
-| `prototipo_rota.py` | Monta os dois grafos (manual e empilhadeira) e calcula o menor caminho |
+| `dados/grafo_armazem.json` | Vértices, arestas (distância e tipo de acesso) e prateleiras do armazém de exemplo |
+| `prototipo_rota.py` | Monta os grafos manual e empilhadeira e calcula o menor caminho |
 | `test_prototipo.py` | Testes do protótipo |
 | `desenhar_grafo.py` | Gera o desenho do grafo em `docs/grafo_armazem.png` |
-| `docs/grafo_armazem.png` | Desenho do grafo (entrega da Semana 1) |
-| `docs/estudo_dijkstra.md` | Guia de estudo (Semana 2) |
-| `docs/regras_de_negocio.md` | Regras, penalidades e contrato de dados (Semana 3) |
+| `docs/grafo_armazem.png` | Desenho do grafo do armazém |
+| `docs/estudo_dijkstra.md` | Anotações de estudo sobre grafos e Dijkstra |
+| `docs/regras_de_negocio.md` | Regras de negócio, critérios de escolha da posição e contrato de dados (rascunho) |
 | `requirements.txt` | Dependências do Python |
 
 ## Como rodar
@@ -27,55 +27,46 @@ python prototipo_rota.py
 python test_prototipo.py
 ```
 
-Para gerar o desenho: `pip install matplotlib` e depois `python desenhar_grafo.py`.
+Para gerar o desenho do grafo: `pip install matplotlib` e depois `python desenhar_grafo.py`.
 
-## Checklist da Sprint 1 (Equipe 2)
+## Dados do grafo
 
-### Semana 1: o armazém como grafo
-- [ ] Combinar o layout com a Equipe 1 (veja as perguntas em `docs/regras_de_negocio.md`, seção 5)
-- [ ] Definir os vértices (corredores, entrada e saída) e as arestas com distâncias
-- [ ] Marcar quais arestas são só de acesso manual
-- [ ] Ligar cada prateleira a um corredor (campo `prateleiras` do JSON)
-- [ ] Conferir o desenho `docs/grafo_armazem.png` com a Equipe 1
+O arquivo `dados/grafo_armazem.json` tem três partes:
 
-### Semana 2: estudo e protótipo
-- [ ] Ler `docs/estudo_dijkstra.md` e fazer os exercícios do final
-- [ ] Rodar `prototipo_rota.py` e entender cada função
-- [ ] Rodar `test_prototipo.py`
-- [ ] Trocar o grafo de exemplo pelo grafo real, se o layout já estiver definido
-- [ ] Cada integrante explica o Dijkstra para o grupo com suas palavras
+- `vertices`: corredores, entrada e saída.
+- `arestas`: ligações entre dois vértices, com `distancia` (em metros) e `acesso` (`manual`, `empilhadeira` ou os dois).
+- `prateleiras`: o corredor de onde cada prateleira é acessada.
 
-### Semana 3: formato JSON e regras
-- [ ] Fechar o formato do `grafo_armazem.json` com o grupo
-- [ ] Fechar as regras e os valores de `docs/regras_de_negocio.md` (os marcados como "a confirmar")
-- [ ] Levar o contrato de dados (seção 4) para a reunião de integração com as Equipes 1 e 3
+Os grafos são montados a partir do campo `acesso`:
 
-## O que entregar no fim da sprint
-- Desenho do grafo (`docs/grafo_armazem.png`)
-- Protótipo em Python funcionando, com o JSON do grafo
-- Documento das regras de negócio
+- **Manual:** usa todas as arestas.
+- **Empilhadeira:** usa só as arestas que incluem `empilhadeira`, ou seja, não passa pelas passagens estreitas.
 
-## Sugestão de commits
+O menor caminho é calculado com Dijkstra, usando a distância como peso de cada aresta. O peso da caixa não entra no grafo: ele é usado na escolha da posição (veja `docs/regras_de_negocio.md`).
 
-Trabalhem em uma branch como `equipe2/prototipo-grafo` e abram um Pull Request no fim.
+As distâncias e o layout são exemplos e serão ajustados com o layout real do armazém.
 
-```
-docs: adiciona desenho do grafo do armazém
-feat: cria arquivo JSON do grafo do armazém
-feat: adiciona protótipo de rota com NetworkX
-feat: adiciona Dijkstra didático para estudo
-test: adiciona testes do protótipo de rotas
-docs: adiciona guia de estudo de Dijkstra
-docs: define regras de negócio e critérios de pontuação
-```
-
-Comandos básicos para cada commit:
+## Testes
 
 ```bash
-git checkout -b equipe2/prototipo-grafo
-git add dados/grafo_armazem.json
-git commit -m "feat: cria arquivo JSON do grafo do armazém"
-git push -u origin equipe2/prototipo-grafo
+python test_prototipo.py
 ```
 
-Se algum teste falhar depois de mudar o JSON, rode `python test_prototipo.py`. Se a mudança for proposital (por exemplo, o grafo real tem outras distâncias), atualizem os valores do dicionário `ESPERADO` no teste.
+Se o grafo mudar de propósito (por exemplo, com as distâncias reais), atualize os valores do dicionário `ESPERADO` em `test_prototipo.py`.
+
+## Status da Sprint 1
+
+- [x] Grafo do armazém em JSON
+- [x] Protótipo de cálculo de rotas (manual e empilhadeira)
+- [x] Testes do protótipo
+- [x] Desenho do grafo
+- [x] Anotações de estudo sobre Dijkstra
+- [x] Rascunho das regras de negócio
+- [ ] Validar o layout real com a Equipe 1
+- [ ] Fechar os valores das regras de negócio
+- [ ] Fechar o formato dos dados com as Equipes 1 e 3
+
+## Próximos passos (Sprint 2)
+
+- Criar o serviço FastAPI com os endpoints `GET /rota` e `POST /recomendar`.
+- Integrar com a API em C#, que fornece as posições livres.

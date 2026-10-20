@@ -1,6 +1,6 @@
-# Guia de estudo: grafos e Dijkstra (Semana 2, Equipe 2)
+# Grafos e Dijkstra: anotações da Equipe 2
 
-Este guia usa o grafo do próprio SmartPick (`dados/grafo_armazem.json`) como exemplo. Leia na ordem, rode o código de cada parte e depois faça os exercícios do final.
+Anotações sobre o algoritmo usado no módulo de rotas, com exemplos do grafo do próprio SmartPick (`dados/grafo_armazem.json`).
 
 ## 1. O que é um grafo
 
@@ -95,11 +95,18 @@ nx.is_connected(g)       # True se dá para ir de qualquer vértice a qualquer o
 
 Se não existir caminho, o NetworkX lança `nx.NetworkXNoPath`. O protótipo trata isso e devolve `None`.
 
-## 8. Exercícios da Semana 2
+## 8. Conferindo os exemplos no código
 
-1. Rode `python prototipo_rota.py` e confira se as distâncias batem com o desenho `docs/grafo_armazem.png`.
-2. Rode `python test_prototipo.py` e leia o teste que compara o Dijkstra didático com o do NetworkX.
-3. Refaça à mão, no papel, o passo a passo da Entrada até **T2** (acesso manual) e confira com o programa. Resposta esperada: 31 m.
-4. Faça o mesmo para a empilhadeira até **R1**. Resposta esperada: 43 m.
-5. No JSON, mude a distância da aresta `T1 - M1` de 6 para 20 e rode o protótipo de novo. A rota manual até P1 deve passar a ser igual à da empilhadeira (28 m). Depois volte o valor para 6.
-6. Explique para a equipe, com suas palavras, por que o peso da caixa não entra no grafo.
+`python prototipo_rota.py` mostra as rotas da Entrada até cada prateleira. Alguns resultados do grafo de exemplo:
+
+| Destino | Manual | Empilhadeira |
+|---|---|---|
+| T1 (prateleira P1) | 24 m | 28 m |
+| T2 (prateleira P2) | 31 m | 35 m |
+| R1 (prateleira P3) | 39 m | 43 m |
+
+O teste `test_dijkstra_didatico_igual_ao_networkx` compara o Dijkstra escrito à mão (`dijkstra_didatico`) com o do NetworkX para todos os pares de vértices.
+
+Sensibilidade a uma distância: se a aresta `T1 - M1` passar de 6 para 20 m no JSON, a rota manual até P1 deixa de usar a passagem estreita e fica igual à da empilhadeira (28 m).
+
+O peso da caixa não entra no grafo. Ele é usado só na escolha da posição, descrita em `regras_de_negocio.md`.
