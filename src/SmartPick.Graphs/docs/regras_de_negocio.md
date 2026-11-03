@@ -7,7 +7,6 @@ Documento da Sprint 1, Semana 3. Os valores marcados com **(a confirmar)** são 
 | Item | Convenção sugerida |
 |---|---|
 | Nível de altura | 1 (chão), 2 e 3 (mais alto) |
-| Profundidade | 1 = frente da prateleira, 2 = fundo |
 | Distância | metros |
 | Caixa leve | menos de 20 kg **(a confirmar)** |
 | Caixa pesada | 20 kg ou mais **(a confirmar)** |
@@ -23,10 +22,8 @@ Documento da Sprint 1, Semana 3. Os valores marcados com **(a confirmar)** são 
 | RN03 | Posições elevadas ou restritas exigem empilhadeira | Nível 3 ou posição restrita define `tipoAcesso = empilhadeira` |
 | RN04 | A empilhadeira só usa corredores autorizados | O grafo da empilhadeira só tem as arestas com `empilhadeira` no campo `acesso` |
 | RN05 | O operador a pé só usa corredores de acesso manual | O grafo manual só tem as arestas com `manual` no campo `acesso` |
-| RN06 | A posição informa se a caixa fica na frente ou no fundo | Toda posição tem `profundidade` (1 ou 2), devolvida na resposta. O fundo tem penalidade pequena |
+| RN06 | A posição informa se a caixa fica na frente ou no fundo | Fora do escopo: o grupo decidiu não trabalhar com profundidade. A posição é identificada só pela prateleira e pelo nível |
 | RN07 | Posições ocupadas não podem ser sugeridas | Posições ocupadas são descartadas antes de qualquer cálculo |
-
-Decisão pendente para RN06: ao guardar uma caixa no fundo, a frente do mesmo nível precisa estar livre, porque a caixa passa por ela. O grupo deve decidir se isso será verificado agora ou ficará como evolução futura.
 
 ## 3. Como o sistema escolhe a posição (Etapa 1)
 
@@ -38,7 +35,7 @@ Para cada pedido (caixa com peso e dimensões), o FastAPI recebe a lista de posi
 4. **Calcular o custo:**
 
 ```
-custo = distância da rota + penalidade de nível + penalidade de profundidade + penalidade de empilhadeira
+custo = distância da rota + penalidade de nível + penalidade de empilhadeira
 ```
 
 5. **Escolher** a posição de menor custo. Se não restar nenhuma, devolver a mensagem "Nenhuma posição disponível" (RF13).
@@ -55,14 +52,13 @@ As penalidades são em "metros equivalentes", para poderem ser somadas à distâ
 | Caixa pesada no nível 1 | 0 |
 | Caixa pesada no nível 2 | +3 |
 | Caixa pesada no nível 3 | proibido |
-| Posição no fundo (profundidade 2) | +2 |
 | Uso de empilhadeira | +10 (evita usar empilhadeira sem necessidade) |
 
 Para mudar o comportamento do sistema, basta mudar esses números, sem mexer no grafo nem no Dijkstra.
 
 ### Exemplo 1: caixa leve de 8 kg
 
-Candidatas na prateleira P4 (corredor `B1`, rota de 12 m), todas na frente:
+Candidatas na prateleira P4 (corredor `B1`, rota de 12 m):
 
 | Nível | Acesso | Rota | Penalidade de nível | Empilhadeira | Custo |
 |---|---|---|---|---|---|
@@ -87,8 +83,8 @@ Pedido da API em C# ao FastAPI (`POST /recomendar`):
   "pesoKg": 8,
   "dimensoes": { "alturaCm": 40, "larguraCm": 30, "profundidadeCm": 30 },
   "posicoesDisponiveis": [
-    { "id": 12, "prateleira": "P4", "nivel": 2, "profundidade": 1 },
-    { "id": 13, "prateleira": "P4", "nivel": 3, "profundidade": 1 }
+    { "id": 12, "prateleira": "P4", "nivel": 2 },
+    { "id": 13, "prateleira": "P4", "nivel": 3 }
   ]
 }
 ```
@@ -118,12 +114,12 @@ Quando não houver posição possível:
 
 ## 5. Perguntas para a Equipe 1 (layout real)
 
-1. Quantas prateleiras, quantos níveis e quantas profundidades o armazém terá?
+1. Quantas prateleiras e quantos níveis de altura o armazém terá?
 2. Quais corredores são largos o bastante para a empilhadeira?
 3. De qual corredor se acessa cada prateleira?
 4. Quais distâncias reais (ou aproximadas) usar entre os corredores?
 5. Existem posições "restritas" que exigem empilhadeira mesmo em níveis baixos?
-6. Qual será o formato do identificador da posição (número, código como `P4-N2-F1`)?
+6. Qual será o formato do identificador da posição (número, código como `P4-N2`)?
 
 ## 6. Perguntas para a Equipe 3 (tela)
 
