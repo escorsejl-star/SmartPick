@@ -1,3 +1,5 @@
+var API = 'http://localhost:5000';
+
 var form = document.getElementById('loginForm');
 var cards = document.querySelectorAll('.role');
 var campoTurno = document.getElementById('turnoField');
@@ -56,16 +58,44 @@ form.addEventListener('submit', function (e) {
   }
 
   msgErro.hidden = true;
-  sessionStorage.setItem('logado', 'sim');
-  sessionStorage.setItem('perfil', perfil);
-  sessionStorage.setItem('usuario', usuario);
-  if (perfil == 'operador') {
-    sessionStorage.setItem('turno', campoSelectTurno.value);
-  } else {
-    sessionStorage.removeItem('turno');
-  }
 
-  window.location.href = 'overview.html';
+  fetch(API + '/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usuario: usuario, senha: senha, perfil: perfil })
+  })
+    .then(function (resposta) {
+      if (resposta.status >= 500) {
+        throw new Error('Erro no servidor. Veja a mensagem no terminal da API.');
+      }
+      return resposta.json().then(function (dados) {
+        if (!resposta.ok) {
+          throw new Error(dados.erro);
+        }
+        return dados;
+      });
+    })
+    .then(function (dados) {
+      sessionStorage.setItem('logado', 'sim');
+      sessionStorage.setItem('perfil', dados.perfil);
+      sessionStorage.setItem('usuario', dados.login);
+      sessionStorage.setItem('nome', dados.nome);
+      if (dados.perfil == 'operador') {
+        sessionStorage.setItem('turno', campoSelectTurno.value);
+      } else {
+        sessionStorage.removeItem('turno');
+      }
+
+      window.location.href = 'overview.html';
+    })
+    .catch(function (erro) {
+      if (erro.message == 'Failed to fetch') {
+        msgErro.textContent = 'Não foi possível falar com o servidor. A API está rodando?';
+      } else {
+        msgErro.textContent = erro.message;
+      }
+      msgErro.hidden = false;
+    });
 });
 
 escolherPerfil('operador');

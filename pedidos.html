@@ -6,6 +6,7 @@
   <title>Pedidos - SmartPick</title>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="modal.css">
 </head>
 <body>
   <aside class="sidebar" id="menu"></aside>
@@ -55,6 +56,31 @@
         <div class="paginas" id="paginas"></div>
       </div>
     </main>
+  </div>
+
+  <div class="modal-fundo" id="modalFundo" hidden>
+    <form class="modal" id="formPedido" novalidate>
+      <h3 id="modalTitulo">Novo pedido</h3>
+      <div class="modal-grade">
+        <div class="inteiro"><label for="f-cliente">Cliente</label><input id="f-cliente" maxlength="100"></div>
+        <div><label for="f-itens">Itens</label><input id="f-itens" type="number" min="1"></div>
+        <div><label for="f-peso">Peso (kg)</label><input id="f-peso" type="number" step="0.01" min="0"></div>
+        <div><label for="f-prioridade">Prioridade</label>
+          <select id="f-prioridade"><option>P1</option><option>P2</option><option>P3</option></select></div>
+        <div><label for="f-status">Status</label>
+          <select id="f-status"><option>Pendente</option><option>Iniciado</option><option>Em Andamento</option><option>Concluído</option></select></div>
+        <div><label for="f-coletor">Coletor</label><input id="f-coletor" maxlength="50" placeholder="Nenhum"></div>
+        <div><label for="f-eta">Horário previsto</label><input id="f-eta" type="time"></div>
+        <div class="inteiro"><label for="f-progresso">Progresso (%)</label><input id="f-progresso" type="number" min="0" max="100"></div>
+      </div>
+      <p class="modal-erro" id="modalErro" hidden></p>
+      <div class="modal-botoes">
+        <button type="button" class="btn-modal-excluir" id="btnExcluir">Excluir</button>
+        <span class="espaco"></span>
+        <button type="button" class="btn-modal-cancelar" id="btnCancelar">Cancelar</button>
+        <button type="submit" class="btn-modal-salvar">Salvar</button>
+      </div>
+    </form>
   </div>
 
   <script src="menu.js"></script>

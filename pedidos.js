@@ -1,17 +1,42 @@
-var pedidos = [
-  { id: 'ORD-2251', cliente: 'Magazine Luiza', itens: 8, peso: 12.4, prio: 'P1', coletor: 'Carlos M.', status: 'Em Andamento', eta: '16:10', prog: 50 },
-  { id: 'ORD-2252', cliente: 'Americanas S.A.', itens: 14, peso: 8.2, prio: 'P1', coletor: 'Ana P.', status: 'Iniciado', eta: '16:45', prog: 14 },
-  { id: 'ORD-2253', cliente: 'Shopee Brasil', itens: 3, peso: 3.1, prio: 'P2', coletor: 'Marcos S.', status: 'Concluído', eta: '15:30', prog: 100 },
-  { id: 'ORD-2254', cliente: 'Mercado Livre', itens: 21, peso: 24.8, prio: 'P1', coletor: 'Juliana F.', status: 'Em Andamento', eta: '17:00', prog: 33 },
-  { id: 'ORD-2255', cliente: 'TOTVS Dist.', itens: 6, peso: 5.6, prio: 'P2', coletor: 'Carlos M.', status: 'Concluído', eta: '15:12', prog: 100 },
-  { id: 'ORD-2256', cliente: 'Lojas Renner', itens: 18, peso: 9.4, prio: 'P2', coletor: 'Pedro A.', status: 'Iniciado', eta: '17:30', prog: 6 },
-  { id: 'ORD-2257', cliente: 'Tok&Stok', itens: 4, peso: 38.2, prio: 'P1', coletor: 'Juliana F.', status: 'Em Andamento', eta: '16:20', prog: 75 },
-  { id: 'ORD-2258', cliente: 'iFood Mercado', itens: 11, peso: 7.8, prio: 'P3', coletor: '—', status: 'Pendente', eta: '18:00', prog: 0 },
-  { id: 'ORD-2259', cliente: 'B2W Digital', itens: 9, peso: 6.1, prio: 'P2', coletor: '—', status: 'Pendente', eta: '18:15', prog: 0 },
-  { id: 'ORD-2260', cliente: 'Via Varejo', itens: 7, peso: 4.9, prio: 'P3', coletor: '—', status: 'Pendente', eta: '18:30', prog: 0 }
-];
+var API = 'http://localhost:5000';
 
-var proximoNumero = 2261;
+var pedidos = [];
+
+function converterPedido(item) {
+  return {
+    numero: item.id,
+    id: item.codigo,
+    cliente: item.cliente,
+    itens: item.itens,
+    peso: item.pesoKg,
+    prio: item.prioridade,
+    coletor: item.coletor || '—',
+    coletorOriginal: item.coletor || '',
+    status: item.status,
+    eta: item.eta || '—',
+    etaOriginal: item.eta || '',
+    prog: item.progresso
+  };
+}
+
+function carregarPedidos() {
+  fetch(API + '/pedidos')
+    .then(function (resposta) {
+      return resposta.json();
+    })
+    .then(function (itens) {
+      pedidos = [];
+      for (var i = 0; i < itens.length; i++) {
+        pedidos.push(converterPedido(itens[i]));
+      }
+      mostrarResumo();
+      mostrarTabela();
+    })
+    .catch(function () {
+      corpo.innerHTML = '<tr><td colspan="9">Não foi possível carregar os pedidos. A API está rodando?</td></tr>';
+    });
+}
+
 var filtroStatus = 'Todos';
 var paginaAtual = 1;
 var pedidosPorPagina = 5;
@@ -115,8 +140,7 @@ function mostrarResumo() {
 }
 
 function abrirPedido(i) {
-  var p = pedidos[i];
-  alert(p.id + '\nCliente: ' + p.cliente + '\nItens: ' + p.itens + '\nStatus: ' + p.status + '\nETA: ' + p.eta);
+  abrirModal(pedidos[i]);
 }
 
 var botoesFiltro = document.querySelectorAll('#filtros button');
@@ -144,29 +168,108 @@ campoBusca.addEventListener('input', function () {
   mostrarTabela();
 });
 
-document.getElementById('btnNovo').addEventListener('click', function () {
-  var cliente = prompt('Nome do cliente:');
-  if (cliente == null || cliente == '') {
-    return;
+var modalFundo = document.getElementById('modalFundo');
+var formPedido = document.getElementById('formPedido');
+var modalErro = document.getElementById('modalErro');
+var btnExcluir = document.getElementById('btnExcluir');
+var editandoNumero = null;
+
+function campo(id) {
+  return document.getElementById(id);
+}
+
+function abrirModal(p) {
+  modalErro.hidden = true;
+  if (p) {
+    editandoNumero = p.numero;
+    campo('modalTitulo').innerHTML = 'Editar ' + p.id;
+    btnExcluir.hidden = false;
+  } else {
+    editandoNumero = null;
+    campo('modalTitulo').innerHTML = 'Novo pedido';
+    btnExcluir.hidden = true;
+    p = { cliente: '', itens: 1, peso: 1, prio: 'P3', status: 'Pendente', coletorOriginal: '', etaOriginal: '', prog: 0 };
   }
+  campo('f-cliente').value = p.cliente;
+  campo('f-itens').value = p.itens;
+  campo('f-peso').value = p.peso;
+  campo('f-prioridade').value = p.prio;
+  campo('f-status').value = p.status;
+  campo('f-coletor').value = p.coletorOriginal;
+  campo('f-eta').value = p.etaOriginal;
+  campo('f-progresso').value = p.prog;
+  modalFundo.hidden = false;
+  campo('f-cliente').focus();
+}
 
-  pedidos.push({
-    id: 'ORD-' + proximoNumero,
-    cliente: cliente,
-    itens: 1,
-    peso: 1.0,
-    prio: 'P3',
-    coletor: '—',
-    status: 'Pendente',
-    eta: '19:00',
-    prog: 0
-  });
-  proximoNumero = proximoNumero + 1;
+function fecharModal() {
+  modalFundo.hidden = true;
+}
 
-  paginaAtual = 1;
-  mostrarResumo();
-  mostrarTabela();
+document.getElementById('btnNovo').addEventListener('click', function () {
+  abrirModal(null);
 });
 
-mostrarResumo();
-mostrarTabela();
+campo('btnCancelar').addEventListener('click', fecharModal);
+
+modalFundo.addEventListener('click', function (e) {
+  if (e.target == modalFundo) {
+    fecharModal();
+  }
+});
+
+function tratarResposta(resposta) {
+  return resposta.json().then(function (resultado) {
+    if (!resposta.ok) {
+      throw new Error(resultado.erro);
+    }
+    fecharModal();
+    carregarPedidos();
+  });
+}
+
+function mostrarErro(erro) {
+  modalErro.textContent = erro.message;
+  modalErro.hidden = false;
+}
+
+formPedido.addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  var dados = {
+    cliente: campo('f-cliente').value.trim(),
+    itens: Number(campo('f-itens').value),
+    pesoKg: Number(campo('f-peso').value),
+    prioridade: campo('f-prioridade').value,
+    status: campo('f-status').value,
+    coletor: campo('f-coletor').value.trim(),
+    eta: campo('f-eta').value,
+    progresso: Number(campo('f-progresso').value)
+  };
+
+  var url = API + '/pedidos';
+  var metodo = 'POST';
+  if (editandoNumero != null) {
+    url = API + '/pedidos/' + editandoNumero;
+    metodo = 'PUT';
+  }
+
+  fetch(url, {
+    method: metodo,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  })
+    .then(tratarResposta)
+    .catch(mostrarErro);
+});
+
+btnExcluir.addEventListener('click', function () {
+  if (!confirm('Excluir o pedido ORD-' + editandoNumero + '?')) {
+    return;
+  }
+  fetch(API + '/pedidos/' + editandoNumero, { method: 'DELETE' })
+    .then(tratarResposta)
+    .catch(mostrarErro);
+});
+
+carregarPedidos();

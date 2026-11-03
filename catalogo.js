@@ -2,35 +2,41 @@ if (sessionStorage.getItem('logado') != 'sim') {
   window.location.href = 'index.html';
 }
 
-var produtos = [
-  { codigo: 'TN-5501', nome: 'Tênis Nike Air Max 270', cat: 'Calçados', qtd: 48, min: 10, nivel: 'GROUND',
-    comp: 35, larg: 22, alt: 15, peso: 1.8, zona: 'A', corredor: 'A', posicao: '03', prat: 'P1', ean: '7891000055012' },
-  { codigo: 'TV-8801', nome: 'Smart TV Samsung 55" QLED', cat: 'Eletrônicos', qtd: 6, min: 3, nivel: 'HIGH',
-    comp: 123, larg: 15, alt: 71, peso: 17.5, zona: 'C', corredor: 'C', posicao: '01', prat: 'P4', ean: '7891000088014' },
-  { codigo: 'NB-3201', nome: 'Notebook Dell Inspiron 15', cat: 'Eletrônicos', qtd: 12, min: 5, nivel: 'GROUND',
-    comp: 38, larg: 26, alt: 4, peso: 1.9, zona: 'B', corredor: 'B', posicao: '07', prat: 'P2', ean: '7891000032013' },
-  { codigo: 'CA-7710', nome: 'Câmera Canon EOS R50', cat: 'Eletrônicos', qtd: 3, min: 5, nivel: 'GROUND',
-    comp: 12, larg: 9, alt: 8, peso: 0.7, zona: 'B', corredor: 'B', posicao: '09', prat: 'P1', ean: '7891000077106' },
-  { codigo: 'CH-1142', nome: 'Chuveiro Lorenzetti Advanced', cat: 'Elétricos', qtd: 22, min: 8, nivel: 'GROUND',
-    comp: 20, larg: 20, alt: 12, peso: 0.9, zona: 'D', corredor: 'D', posicao: '02', prat: 'P2', ean: '7891000011425' },
-  { codigo: 'SD-5501', nome: 'Sofá 3 Lugares Revestido', cat: 'Móveis', qtd: 4, min: 2, nivel: 'HIGH',
-    comp: 210, larg: 90, alt: 85, peso: 42, zona: 'E', corredor: 'E', posicao: '01', prat: 'P5', ean: '7891000055019' },
-  { codigo: 'AQ-2250', nome: 'Ar Cond. Midea 12000 BTU', cat: 'Eletrônicos', qtd: 8, min: 4, nivel: 'HIGH',
-    comp: 80, larg: 30, alt: 28, peso: 11, zona: 'C', corredor: 'C', posicao: '05', prat: 'P4', ean: '7891000022504' },
-  { codigo: 'BL-0011', nome: 'Blusa Polo Lacoste P', cat: 'Vestuário', qtd: 65, min: 20, nivel: 'GROUND',
-    comp: 30, larg: 25, alt: 3, peso: 0.3, zona: 'A', corredor: 'A', posicao: '12', prat: 'P1', ean: '7891000000115' }
-];
+var API = 'http://localhost:5000';
+
+var produtos = [];
+
+function converterItem(item) {
+  var alto = item.nivel == 3 || item.restrita;
+  return {
+    id: item.id,
+    codigo: item.codigo,
+    nome: item.descricao,
+    cat: item.categoria,
+    qtd: item.quantidade,
+    min: item.minimo,
+    nivel: alto ? 'HIGH' : 'GROUND',
+    comp: item.profundidadeCm,
+    larg: item.larguraCm,
+    alt: item.alturaCm,
+    peso: item.pesoKg,
+    zona: item.corredor || '—',
+    corredor: item.corredor || '—',
+    posicao: item.posicao ? item.posicao.substring(item.posicao.indexOf('-') + 1) : '—',
+    prat: item.prateleira || '—',
+    endereco: item.posicao || 'Sem posição',
+    ean: item.ean
+  };
+}
 
 var selecionado = 0;
-var editando = false;
 
 var campoBusca = document.getElementById('busca');
 var divItens = document.getElementById('itens');
 var contador = document.getElementById('contador');
 var btnEditar = document.getElementById('btnEditar');
-var btnSalvar = document.getElementById('btnSalvar');
-var titulo = document.getElementById('d-nome');
-
+var btnExcluir = document.getElementById('btnExcluir');
+var btnNovo = document.getElementById('btnNovo');
 
 function mostrarLista(texto) {
   var html = '';
@@ -115,7 +121,7 @@ function mostrarDetalhe(p) {
   document.getElementById('d-peso').innerHTML = p.peso + 'kg';
 
   document.getElementById('d-zona').innerHTML = 'Zona ' + p.zona;
-  document.getElementById('d-endereco').innerHTML = p.corredor + '-' + p.posicao + '-' + p.prat;
+  document.getElementById('d-endereco').innerHTML = p.endereco;
   document.getElementById('d-etiquetas').innerHTML =
     '<span>Corredor: <b>' + p.corredor + '</b></span>' +
     '<span>Posição: <b>' + p.posicao + '</b></span>' +
@@ -149,34 +155,153 @@ campoBusca.addEventListener('input', function () {
   mostrarLista(campoBusca.value);
 });
 
-btnEditar.addEventListener('click', function () {
-  if (editando == false) {
-    editando = true;
-    titulo.contentEditable = true;
-    titulo.focus();
-    btnEditar.innerHTML = 'Cancelar';
+var modalFundo = document.getElementById('modalFundo');
+var formProduto = document.getElementById('formProduto');
+var modalErro = document.getElementById('modalErro');
+var editandoId = null;
+
+function campo(id) {
+  return document.getElementById(id);
+}
+
+function abrirModal(p) {
+  modalErro.hidden = true;
+  if (p) {
+    editandoId = p.id;
+    campo('modalTitulo').innerHTML = 'Editar ' + p.codigo;
   } else {
-    editando = false;
-    titulo.contentEditable = false;
-    btnEditar.innerHTML = 'Editar';
-    mostrarDetalhe(produtos[selecionado]);
+    editandoId = null;
+    campo('modalTitulo').innerHTML = 'Novo produto';
+    p = { codigo: '', nome: '', cat: '', qtd: 1, min: 0, peso: '', ean: '', comp: '', larg: '', alt: '' };
+  }
+  campo('f-codigo').value = p.codigo;
+  campo('f-descricao').value = p.nome;
+  campo('f-categoria').value = p.cat;
+  campo('f-quantidade').value = p.qtd;
+  campo('f-minimo').value = p.min;
+  campo('f-peso').value = p.peso;
+  campo('f-ean').value = p.ean;
+  campo('f-comp').value = p.comp;
+  campo('f-larg').value = p.larg;
+  campo('f-alt').value = p.alt;
+  modalFundo.hidden = false;
+  campo('f-descricao').focus();
+}
+
+function fecharModal() {
+  modalFundo.hidden = true;
+}
+
+btnEditar.addEventListener('click', function () {
+  if (produtos.length > 0) {
+    abrirModal(produtos[selecionado]);
   }
 });
 
-btnSalvar.addEventListener('click', function () {
-  produtos[selecionado].nome = titulo.innerHTML;
+btnNovo.addEventListener('click', function () {
+  abrirModal(null);
+});
 
-  titulo.contentEditable = false;
-  btnEditar.innerHTML = 'Editar';
-  editando = false;
+campo('btnCancelar').addEventListener('click', fecharModal);
 
-  mostrarLista(campoBusca.value);
-  alert('Salvo!');
+modalFundo.addEventListener('click', function (e) {
+  if (e.target == modalFundo) {
+    fecharModal();
+  }
+});
 
+formProduto.addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  var dados = {
+    codigo: campo('f-codigo').value.trim(),
+    descricao: campo('f-descricao').value.trim(),
+    categoria: campo('f-categoria').value.trim(),
+    quantidade: Number(campo('f-quantidade').value),
+    minimo: Number(campo('f-minimo').value),
+    pesoKg: Number(campo('f-peso').value),
+    ean: campo('f-ean').value.trim(),
+    profundidadeCm: Number(campo('f-comp').value),
+    larguraCm: Number(campo('f-larg').value),
+    alturaCm: Number(campo('f-alt').value)
+  };
+
+  var url = API + '/caixas';
+  var metodo = 'POST';
+  if (editandoId != null) {
+    url = API + '/caixas/' + editandoId;
+    metodo = 'PUT';
+  }
+
+  fetch(url, {
+    method: metodo,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  })
+    .then(function (resposta) {
+      return resposta.json().then(function (resultado) {
+        if (!resposta.ok) {
+          throw new Error(resultado.erro);
+        }
+        var idParaMostrar = editandoId != null ? editandoId : resultado.id;
+        fecharModal();
+        carregarCatalogo(idParaMostrar);
+      });
+    })
+    .catch(function (erro) {
+      modalErro.textContent = erro.message;
+      modalErro.hidden = false;
+    });
+});
+
+btnExcluir.addEventListener('click', function () {
+  if (produtos.length == 0) {
+    return;
+  }
+  var p = produtos[selecionado];
+  if (!confirm('Excluir o produto ' + p.codigo + ' - ' + p.nome + '?')) {
+    return;
+  }
+
+  fetch(API + '/caixas/' + p.id, { method: 'DELETE' })
+    .then(function (resposta) {
+      return resposta.json().then(function (resultado) {
+        if (!resposta.ok) {
+          throw new Error(resultado.erro);
+        }
+        carregarCatalogo(null);
+      });
+    })
+    .catch(function (erro) {
+      alert('Não foi possível excluir: ' + erro.message);
+    });
 });
 
 var agora = new Date();
 document.getElementById('data').innerHTML = agora.toLocaleString('pt-BR');
 
-mostrarLista('');
-mostrarDetalhe(produtos[0]);
+function carregarCatalogo(idParaMostrar) {
+  fetch(API + '/catalogo')
+    .then(function (resposta) {
+      return resposta.json();
+    })
+    .then(function (itens) {
+      produtos = [];
+      selecionado = 0;
+      for (var i = 0; i < itens.length; i++) {
+        produtos.push(converterItem(itens[i]));
+        if (itens[i].id == idParaMostrar) {
+          selecionado = i;
+        }
+      }
+      mostrarLista(campoBusca.value);
+      if (produtos.length > 0) {
+        mostrarDetalhe(produtos[selecionado]);
+      }
+    })
+    .catch(function () {
+      divItens.innerHTML = '<p class="item-nome">Não foi possível carregar o catálogo. A API está rodando?</p>';
+    });
+}
+
+carregarCatalogo(null);

@@ -20,7 +20,7 @@
       <div class="cabeca">
         <div>
           <h1>Torre de Controle</h1>
-          <p class="sub">Turno Tarde em andamento · 7 coletores ativos</p>
+          <p class="sub" id="subtitulo">Carregando...</p>
         </div>
         <span class="status" style="padding:10px 16px;font-size:12px">● Sistema Operacional</span>
       </div>
@@ -28,8 +28,8 @@
       <div class="kpis">
         <div class="card kpi k-amarelo"><small>PICK RATE</small><em>+18%</em><b class="amarelo">247/h</b><span>Peças por hora · média turno</span></div>
         <div class="card kpi k-azul"><small>EFICIÊNCIA DE ROTA</small><em>+34%</em><b class="azul">91%</b><span>vs. 57% antes do SmartPick</span></div>
-        <div class="card kpi k-verde"><small>ACURÁCIA</small><b class="verde">99.9%</b><span>18 pedidos · 0 erros hoje</span></div>
-        <div class="card kpi k-roxo"><small>PEDIDOS ATIVOS</small><b class="roxo">18</b><span>5 concluídos · 8 em andamento</span></div>
+        <div class="card kpi k-verde"><small>ACURÁCIA</small><b class="verde">99.9%</b><span id="k-acuracia">— pedidos · 0 erros hoje</span></div>
+        <div class="card kpi k-roxo"><small>PEDIDOS ATIVOS</small><b class="roxo" id="k-ativos">—</b><span id="k-ativos-detalhe"></span></div>
       </div>
 
       <div class="duas-colunas col-graficos">
@@ -46,7 +46,7 @@
       </div>
 
       <div class="duas-colunas col-baixo">
-        <div class="card"><h3>Status por Zona</h3><div id="zonas"></div></div>
+        <div class="card"><h3>Ocupação por Prateleira</h3><div id="zonas"></div></div>
         <div class="card"><h3>Atividade Recente</h3><ul class="atividade" id="atividade"></ul></div>
       </div>
     </main>

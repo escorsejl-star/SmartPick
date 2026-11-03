@@ -25,9 +25,23 @@ for (var i = 0; i < telas.length; i++) {
 }
 
 menu = menu + '</nav>';
-menu = menu + '<div class="usuario"><div class="avatar">G</div><div><strong>Gustavo Lima</strong><small>Gestor · Torre de Controle</small></div></div>';
-menu = menu + '<p class="coletores">● 7 coletores ativos agora</p>';
+var nome = sessionStorage.getItem('nome') || 'Usuário';
+var cargo = 'Gestor · Torre de Controle';
+if (sessionStorage.getItem('perfil') == 'operador') {
+  cargo = 'Operador · ' + (sessionStorage.getItem('turno') || 'Coleta');
+}
+menu = menu + '<div class="usuario"><div class="avatar">' + nome[0] + '</div><div><strong>' + nome + '</strong><small>' + cargo + '</small></div></div>';
+menu = menu + '<p class="coletores" id="coletoresAtivos">● coletores ativos agora</p>';
 menu = menu + '<a href="index.html" class="sair" onclick="sessionStorage.clear()">⏻ Sair</a>';
 
 document.getElementById('menu').innerHTML = menu;
 document.getElementById('data').innerHTML = new Date().toLocaleString('pt-BR');
+
+fetch('http://localhost:5000/overview')
+  .then(function (resposta) {
+    return resposta.json();
+  })
+  .then(function (dados) {
+    document.getElementById('coletoresAtivos').innerHTML = '● ' + dados.coletoresAtivos + ' coletores ativos agora';
+  })
+  .catch(function () {});

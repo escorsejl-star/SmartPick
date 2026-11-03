@@ -4,20 +4,64 @@ var horas = ['06h', '07h', '08h', '09h', '10h', '11h', '12h', '13h', '14h', '15h
 var eficiencia = [55, 52, 60, 56, 70, 78, 85, 91];
 var semanas = ['Sem -4', 'Sem -3', 'Sem -2', 'Sem -1', 'Lançamento', 'Sem +1', 'Sem +2', 'Hoje'];
 
-var zonas = [
-  { nome: 'Zona A – Calçados', ativos: '3 ativos', pct: 72, cor: '#f5b400' },
-  { nome: 'Zona B – Eletro', ativos: '2 ativos', pct: 58, cor: '#38c8f5' },
-  { nome: 'Zona C – Vestuário', ativos: '1 ativos', pct: 85, cor: '#10d9a0' },
-  { nome: 'Zona D – Acessórios', ativos: '', pct: 40, cor: '#a78bfa' }
-];
+var API = 'http://localhost:5000';
 
-var atividades = [
-  { hora: '15:44', texto: 'ORD-2255 concluído · 6 itens · Carlos M.', cor: 'cor-verde' },
-  { hora: '15:38', texto: 'ORD-2251 · Posição B-14 em coleta · Ana P.', cor: 'cor-azul' },
-  { hora: '15:31', texto: 'Divergência detectada em ORD-2249 · Lote incorreto', cor: 'cor-vermelho' },
-  { hora: '15:20', texto: 'ORD-2248 concluído · 12 itens · Marcos S.', cor: 'cor-verde' },
-  { hora: '15:10', texto: 'Rota reotimizada ORD-2252 · -4 corredores', cor: 'cor-amarelo' }
-];
+var coresPrateleiras = ['#f5b400', '#38c8f5', '#10d9a0', '#a78bfa', '#ff8a5c', '#5b8fd6'];
+
+var zonas = [];
+var atividades = [];
+
+function textoAtividade(a) {
+  var coletor = a.coletor || 'sem coletor';
+  if (a.status == 'Concluído') {
+    return { texto: a.codigo + ' concluído · ' + a.itens + ' itens · ' + coletor, cor: 'cor-verde' };
+  }
+  if (a.status == 'Em Andamento') {
+    return { texto: a.codigo + ' em coleta · ' + a.progresso + '% · ' + coletor, cor: 'cor-azul' };
+  }
+  if (a.status == 'Iniciado') {
+    return { texto: a.codigo + ' iniciado · ' + a.cliente + ' · ' + coletor, cor: 'cor-azul' };
+  }
+  return { texto: a.codigo + ' aguardando coletor · ' + a.cliente, cor: 'cor-amarelo' };
+}
+
+function carregarOverview() {
+  fetch(API + '/overview')
+    .then(function (resposta) {
+      return resposta.json();
+    })
+    .then(function (dados) {
+      var ativos = dados.totalPedidos - dados.concluidos;
+      document.getElementById('k-ativos').innerHTML = ativos;
+      document.getElementById('k-ativos-detalhe').innerHTML = dados.concluidos + ' concluídos · ' + dados.emAndamento + ' em andamento';
+      document.getElementById('k-acuracia').innerHTML = dados.totalPedidos + ' pedidos · 0 erros hoje';
+      document.getElementById('subtitulo').innerHTML = dados.pendentes + ' pedidos pendentes · ' + dados.coletoresAtivos + ' coletores ativos';
+
+      zonas = [];
+      for (var i = 0; i < dados.prateleiras.length; i++) {
+        var p = dados.prateleiras[i];
+        zonas.push({
+          nome: 'Prateleira ' + p.prateleira + ' – Corredor ' + p.corredor,
+          ativos: p.ocupadas + '/' + p.total + ' posições',
+          pct: Math.round((p.ocupadas / p.total) * 100),
+          cor: coresPrateleiras[i % coresPrateleiras.length]
+        });
+      }
+
+      atividades = [];
+      for (var j = 0; j < dados.atividades.length; j++) {
+        var a = dados.atividades[j];
+        var linha = textoAtividade(a);
+        atividades.push({ hora: a.hora, texto: linha.texto, cor: linha.cor });
+      }
+
+      desenharZonas();
+      desenharAtividade();
+    })
+    .catch(function () {
+      document.getElementById('subtitulo').innerHTML = 'Não foi possível carregar os dados. A API está rodando?';
+    });
+}
 
 function desenharGrafico(idSvg, valores, maximo, cor, comFundo) {
   var pontos = '';
@@ -71,5 +115,4 @@ desenharGrafico('grafico1', pickRate, 280, '#f5b400', true);
 desenharEixo('eixo1', horas);
 desenharGrafico('grafico2', eficiencia, 100, '#38c8f5', false);
 desenharEixo('eixo2', semanas);
-desenharZonas();
-desenharAtividade();
+carregarOverview();
