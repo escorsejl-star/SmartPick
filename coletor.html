@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal do Coletor - SmartPick</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="principal">
+    <header class="topo">
+      <h2><span class="amarelo">Smart</span>Pick · Portal do Coletor</h2>
+      <div><span id="nomeColetor"></span><a href="index.html" class="sair-topo" onclick="sessionStorage.clear()">Sair</a></div>
+    </header>
+
+    <main class="pagina portal">
+      <h4 class="portal-titulo">MEU PEDIDO</h4>
+      <div class="card" id="meuPedido"></div>
+      <p class="modal-erro" id="erro" hidden></p>
+
+      <h4 class="portal-titulo">PEDIDOS PENDENTES</h4>
+      <div id="pendentes"></div>
+    </main>
+  </div>
+
+  <script src="coletor.js"></script>
+</body>
+</html>
