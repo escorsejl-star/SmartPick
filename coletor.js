@@ -27,6 +27,14 @@ function ordemPrioridade(a, b) {
   return a.id - b.id;
 }
 
+// Mesma regra do mapa: nível 3, posição restrita ou 20 kg ou mais precisa de empilhadeira
+function seloAcesso(item) {
+  if (item.nivel == 3 || item.restrita || item.pesoKg >= 20) {
+    return '<span class="selo-acesso empilhadeira">Empilhadeira</span>';
+  }
+  return '<span class="selo-acesso manual">Manual</span>';
+}
+
 function chipPrioridade(prioridade) {
   return '<span class="chip p-' + prioridade + '">' + prioridade + ' · ' + nomePrioridade[prioridade] + '</span>';
 }
@@ -51,7 +59,7 @@ function mostrarMeuPedido() {
 
     html += '<div class="pedido-linha' + (item.coletado ? ' coletada' : '') + '"><div>' +
       '<strong>' + item.quantidade + 'x ' + item.descricao + '</strong>' +
-      '<small>' + item.codigo + ' · ' + (item.posicao || 'sem posição') + ' · ' + item.pesoKg + ' kg</small></div>';
+      '<small>' + item.codigo + ' · ' + (item.posicao || 'sem posição') + ' · ' + item.pesoKg + ' kg ' + seloAcesso(item) + '</small></div>';
     if (item.coletado) {
       html += '<span class="chip s-concluido">Coletado</span>';
     } else {
@@ -60,6 +68,11 @@ function mostrarMeuPedido() {
     html += '</div>';
   }
   html += '</div>';
+
+  // enquanto nada foi coletado, dá para devolver o pedido para a lista
+  if (meu.status == 'Iniciado') {
+    html += '<div class="portal-botoes"><button class="btn-azul" onclick="devolverPedido()">Devolver pedido</button></div>';
+  }
 
   div.innerHTML = html;
 }
@@ -149,4 +162,15 @@ function coletarProduto(itemId) {
   enviar('/pedidos/' + meu.id + '/itens/' + itemId + '/coletar', {});
 }
 
+// Volta o pedido para Pendente, para outro coletor pegar
+function devolverPedido() {
+  if (!confirm('Devolver o pedido ' + meu.codigo + '? Ele volta para a lista de pendentes.')) {
+    return;
+  }
+  enviar('/pedidos/' + meu.id + '/devolver', { coletor: meuNome });
+}
+
 carregarPedidos();
+
+// Busca os pedidos de novo a cada 10 segundos, para ver o que o gestor mudou
+setInterval(carregarPedidos, 10000);

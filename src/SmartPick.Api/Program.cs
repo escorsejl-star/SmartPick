@@ -390,6 +390,24 @@ app.MapPost("/pedidos/{id}/pegar", async (int id, PedidoPegar dados) =>
 });
 
 // O coletor coleta um produto: o pedido vira Em Andamento e, no último, Concluído
+// O coletor devolve o pedido que pegou por engano. Só dá antes de coletar o primeiro produto.
+app.MapPost("/pedidos/{id}/devolver", async (int id, PedidoPegar dados) =>
+{
+    using var db = AbrirConexao();
+    var pedido = await db.QuerySingleOrDefaultAsync<Pedido>(
+        "SELECT id, cliente, coletor, status FROM pedidos WHERE id = @id", new { id });
+    if (pedido == null)
+        return Results.NotFound(new { erro = "Pedido não encontrado." });
+    if (pedido.Coletor != dados.Coletor)
+        return Results.BadRequest(new { erro = "Este pedido não está com você." });
+    if (pedido.Status != "Iniciado")
+        return Results.BadRequest(new { erro = "Não dá para devolver depois que a coleta começou." });
+
+    await db.ExecuteAsync(
+        "UPDATE pedidos SET coletor = NULL, status = 'Pendente' WHERE id = @id", new { id });
+    return Results.Ok(new { mensagem = "Pedido devolvido." });
+});
+
 app.MapPost("/pedidos/{id}/itens/{itemId}/coletar", async (int id, int itemId) =>
 {
     using var db = AbrirConexao();

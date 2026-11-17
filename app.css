@@ -228,3 +228,4 @@ tr.linha.marcada { background: #12296a; }
 .pedido-linha.coletada { opacity: 0.6; }
 .btn-remover { padding: 4px 10px; font-size: 12px; cursor: pointer; color: #ff8a8a; background: #2a1020; border: 1px solid #7a2238; border-radius: 6px; }
 #p-busca { margin-bottom: 10px; }
+.pedido-linha small .selo-acesso { margin-left: 4px; vertical-align: middle; }
