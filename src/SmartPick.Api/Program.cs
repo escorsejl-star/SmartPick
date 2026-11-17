@@ -113,6 +113,21 @@ app.MapGet("/posicoes/disponiveis", async (int? nivel, int? profundidade) =>
     return Results.Ok(posicoes);
 });
 
+app.MapGet("/mapa", async () =>
+{
+    using var db = AbrirConexao();
+    var posicoes = await db.QueryAsync<PosicaoMapa>(
+        @"SELECT po.id, po.codigo, pr.codigo AS prateleira, pr.corredor,
+                 po.nivel, po.profundidade, po.restrita, po.ocupada,
+                 COALESCE(c.codigo, CONCAT('CX-', LPAD(c.id, 4, '0'))) AS caixa, c.descricao,
+                 c.categoria, c.peso_kg, c.quantidade
+          FROM posicoes po
+          JOIN prateleiras pr ON pr.id = po.prateleira_id
+          LEFT JOIN caixas c ON c.posicao_id = po.id
+          ORDER BY pr.codigo, po.nivel DESC, po.profundidade");
+    return Results.Ok(posicoes);
+});
+
 app.MapPost("/armazenar", async (PedidoArmazenar pedido) =>
 {
     using var db = AbrirConexao();
@@ -131,6 +146,8 @@ app.MapPost("/armazenar", async (PedidoArmazenar pedido) =>
         return Results.NotFound(new { erro = "Posição não encontrada." });
     if (posicao.Ocupada)
         return Results.BadRequest(new { erro = "Esta posição já está ocupada." });
+    if (caixa.PesoKg >= 20 && posicao.Nivel == 3)
+        return Results.BadRequest(new { erro = "Caixa com 20 kg ou mais não pode ficar no nível 3." });
 
     using var transacao = await db.BeginTransactionAsync();
     await db.ExecuteAsync(
@@ -220,6 +237,23 @@ app.MapGet("/pedidos", async () =>
                  TIME_FORMAT(eta, '%H:%i') AS eta, progresso
           FROM pedidos ORDER BY id");
     return Results.Ok(pedidos);
+});
+
+// Produtos de todos os pedidos, com a posição de cada um no armazém
+app.MapGet("/pedidos/itens", async () =>
+{
+    using var db = AbrirConexao();
+    var itens = await db.QueryAsync<ItemPedido>(
+        @"SELECT pi.pedido_id, COALESCE(c.codigo, CONCAT('CX-', LPAD(c.id, 4, '0'))) AS codigo,
+                 c.descricao, pi.quantidade, c.peso_kg,
+                 po.codigo AS posicao, pr.codigo AS prateleira, po.nivel,
+                 COALESCE(po.restrita, FALSE) AS restrita
+          FROM pedido_itens pi
+          JOIN caixas c ON c.id = pi.caixa_id
+          LEFT JOIN posicoes po ON po.id = c.posicao_id
+          LEFT JOIN prateleiras pr ON pr.id = po.prateleira_id
+          ORDER BY pi.pedido_id, pi.id");
+    return Results.Ok(itens);
 });
 
 app.MapPost("/pedidos", async (DadosPedido dados) =>

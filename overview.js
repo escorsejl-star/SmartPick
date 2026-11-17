@@ -6,8 +6,6 @@ var semanas = ['Sem -4', 'Sem -3', 'Sem -2', 'Sem -1', 'Lançamento', 'Sem +1', 
 
 var API = 'http://localhost:5000';
 
-var coresPrateleiras = ['#f5b400', '#38c8f5', '#10d9a0', '#a78bfa', '#ff8a5c', '#5b8fd6'];
-
 var zonas = [];
 var atividades = [];
 
@@ -43,8 +41,7 @@ function carregarOverview() {
         zonas.push({
           nome: 'Prateleira ' + p.prateleira + ' – Corredor ' + p.corredor,
           ativos: p.ocupadas + '/' + p.total + ' posições',
-          pct: Math.round((p.ocupadas / p.total) * 100),
-          cor: coresPrateleiras[i % coresPrateleiras.length]
+          pct: Math.round((p.ocupadas / p.total) * 100)
         });
       }
 
@@ -95,8 +92,8 @@ function desenharZonas() {
   for (var i = 0; i < zonas.length; i++) {
     var z = zonas[i];
     html = html + '<div class="zona">' +
-      '<div class="zona-linha"><span><span style="color:' + z.cor + '">●</span> ' + z.nome + '</span><small>' + z.ativos + ' <b>' + z.pct + '%</b></small></div>' +
-      '<div class="barra-fundo"><div class="barra-cheia" style="width:' + z.pct + '%;background:' + z.cor + '"></div></div>' +
+      '<div class="zona-linha"><span>' + z.nome + '</span><small>' + z.ativos + ' <b>' + z.pct + '%</b></small></div>' +
+      '<div class="barra-fundo"><div class="barra-cheia" style="width:' + z.pct + '%"></div></div>' +
       '</div>';
   }
   document.getElementById('zonas').innerHTML = html;

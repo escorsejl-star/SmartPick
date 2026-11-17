@@ -18,7 +18,7 @@
       <h2>Catálogo SKU</h2>
       <div>
         <span id="data"></span>
-        <span class="status">● Sistema Ativo</span>
+        <span class="status">Sistema ativo</span>
       </div>
     </header>
 
@@ -27,7 +27,7 @@
       <section class="lista">
         <div class="lista-topo">
           <h3>Catálogo SKUs <span class="contador" id="contador">8</span></h3>
-          <input type="text" id="busca" placeholder="🔍 Buscar SKU...">
+          <input type="text" id="busca" placeholder="Buscar SKU...">
         </div>
         <div id="itens"></div>
       </section>
@@ -42,6 +42,7 @@
           <div class="botoes">
             <button class="btn-editar" id="btnExcluir">Excluir</button>
             <button class="btn-editar" id="btnEditar">Editar</button>
+            <button class="btn-editar" id="btnArmazenar" hidden>Armazenar</button>
             <button class="btn-salvar" id="btnNovo">+ Novo</button>
           </div>
         </div>
@@ -108,6 +109,29 @@
         <span class="espaco"></span>
         <button type="button" class="btn-modal-cancelar" id="btnCancelar">Cancelar</button>
         <button type="submit" class="btn-modal-salvar">Salvar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-fundo" id="modalArmazenar" hidden>
+    <form class="modal" id="formArmazenar" novalidate>
+      <h3 id="armazenarTitulo">Armazenar caixa</h3>
+      <div class="modal-grade">
+        <div><label for="a-nivel">Nível</label>
+          <select id="a-nivel">
+            <option value="">Todos</option>
+            <option value="1">1 (chão)</option>
+            <option value="2">2</option>
+            <option value="3">3 (alto)</option>
+          </select>
+        </div>
+        <div><label for="a-posicao">Posição livre</label><select id="a-posicao"></select></div>
+      </div>
+      <p class="modal-erro" id="armazenarErro" hidden></p>
+      <div class="modal-botoes">
+        <span class="espaco"></span>
+        <button type="button" class="btn-modal-cancelar" id="btnCancelarArmazenar">Cancelar</button>
+        <button type="submit" class="btn-modal-salvar">Armazenar</button>
       </div>
     </form>
   </div>

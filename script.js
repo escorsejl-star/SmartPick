@@ -86,7 +86,11 @@ form.addEventListener('submit', function (e) {
         sessionStorage.removeItem('turno');
       }
 
-      window.location.href = 'overview.html';
+      if (dados.perfil == 'operador') {
+        window.location.href = 'coletor.html';
+      } else {
+        window.location.href = 'overview.html';
+      }
     })
     .catch(function (erro) {
       if (erro.message == 'Failed to fetch') {

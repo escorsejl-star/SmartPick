@@ -25,6 +25,7 @@ function converterItem(item) {
     posicao: item.posicao ? item.posicao.substring(item.posicao.indexOf('-') + 1) : '—',
     prat: item.prateleira || '—',
     endereco: item.posicao || 'Sem posição',
+    temPosicao: item.posicao != null,
     ean: item.ean
   };
 }
@@ -37,6 +38,7 @@ var contador = document.getElementById('contador');
 var btnEditar = document.getElementById('btnEditar');
 var btnExcluir = document.getElementById('btnExcluir');
 var btnNovo = document.getElementById('btnNovo');
+var btnArmazenar = document.getElementById('btnArmazenar');
 
 function mostrarLista(texto) {
   var html = '';
@@ -106,14 +108,18 @@ function mostrarDetalhe(p) {
   document.getElementById('d-categoria').innerHTML = p.cat;
 
   var acesso = '';
-  if (p.nivel == 'GROUND') {
+  if (p.nivel == 'GROUND' && p.peso < 20) {
     acesso = 'Acesso manual';
   } else {
     acesso = 'Requer empilhadeira';
   }
   var nivel = document.getElementById('d-nivel');
   nivel.className = 'nivel nivel-' + p.nivel;
-  nivel.innerHTML = 'Nível do Solo — ' + p.nivel + '<small>' + acesso + '</small>';
+  var nomeNivel = 'Nível alto';
+  if (p.nivel == 'GROUND') {
+    nomeNivel = 'Nível do solo';
+  }
+  nivel.innerHTML = nomeNivel + '<small>' + acesso + '</small>';
 
   document.getElementById('d-comp').innerHTML = p.comp + 'cm';
   document.getElementById('d-larg').innerHTML = p.larg + 'cm';
@@ -126,6 +132,8 @@ function mostrarDetalhe(p) {
     '<span>Corredor: <b>' + p.corredor + '</b></span>' +
     '<span>Posição: <b>' + p.posicao + '</b></span>' +
     '<span>Prateleira: <b>' + p.prat + '</b></span>';
+
+  btnArmazenar.hidden = p.temPosicao;
 
   desenharBarras(p.ean);
   document.getElementById('d-ean').innerHTML = p.ean;
@@ -274,6 +282,88 @@ btnExcluir.addEventListener('click', function () {
     })
     .catch(function (erro) {
       alert('Não foi possível excluir: ' + erro.message);
+    });
+});
+
+// Armazenar caixa: escolhe uma posição livre e guarda a caixa nela
+var modalArmazenar = document.getElementById('modalArmazenar');
+var armazenarErro = document.getElementById('armazenarErro');
+var campoNivel = document.getElementById('a-nivel');
+var campoPosicao = document.getElementById('a-posicao');
+
+function carregarPosicoesLivres() {
+  var url = API + '/posicoes/disponiveis';
+  if (campoNivel.value != '') {
+    url = url + '?nivel=' + campoNivel.value;
+  }
+
+  fetch(url)
+    .then(function (resposta) {
+      return resposta.json();
+    })
+    .then(function (posicoes) {
+      var html = '';
+      for (var i = 0; i < posicoes.length; i++) {
+        var po = posicoes[i];
+        var texto = po.codigo + ' · corredor ' + po.corredor;
+        if (po.nivel == 3 || po.restrita) {
+          texto = texto + ' · empilhadeira';
+        }
+        html = html + '<option value="' + po.id + '">' + texto + '</option>';
+      }
+      if (posicoes.length == 0) {
+        html = '<option value="">Nenhuma posição livre</option>';
+      }
+      campoPosicao.innerHTML = html;
+    })
+    .catch(function () {
+      armazenarErro.textContent = 'Não foi possível carregar as posições. A API está rodando?';
+      armazenarErro.hidden = false;
+    });
+}
+
+btnArmazenar.addEventListener('click', function () {
+  var p = produtos[selecionado];
+  campo('armazenarTitulo').innerHTML = 'Armazenar ' + p.codigo;
+  armazenarErro.hidden = true;
+  campoNivel.value = '';
+  carregarPosicoesLivres();
+  modalArmazenar.hidden = false;
+});
+
+campoNivel.addEventListener('change', carregarPosicoesLivres);
+
+campo('btnCancelarArmazenar').addEventListener('click', function () {
+  modalArmazenar.hidden = true;
+});
+
+campo('formArmazenar').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  if (campoPosicao.value == '') {
+    armazenarErro.textContent = 'Escolha uma posição.';
+    armazenarErro.hidden = false;
+    return;
+  }
+
+  var p = produtos[selecionado];
+  fetch(API + '/armazenar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ caixaId: p.id, posicaoId: Number(campoPosicao.value) })
+  })
+    .then(function (resposta) {
+      return resposta.json().then(function (resultado) {
+        if (!resposta.ok) {
+          throw new Error(resultado.erro);
+        }
+        modalArmazenar.hidden = true;
+        carregarCatalogo(p.id);
+      });
+    })
+    .catch(function (erro) {
+      armazenarErro.textContent = erro.message;
+      armazenarErro.hidden = false;
     });
 });
 

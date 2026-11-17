@@ -67,6 +67,17 @@ CREATE TABLE pedidos (
   CHECK (progresso BETWEEN 0 AND 100)
 ) AUTO_INCREMENT = 2251;
 
+-- Produtos de cada pedido
+CREATE TABLE pedido_itens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pedido_id INT NOT NULL,
+  caixa_id INT NOT NULL,
+  quantidade INT NOT NULL DEFAULT 1,
+  FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+  FOREIGN KEY (caixa_id) REFERENCES caixas(id) ON DELETE CASCADE,
+  CHECK (quantidade > 0)
+);
+
 INSERT INTO prateleiras (codigo, corredor) VALUES
   ('P1', 'T1'),
   ('P2', 'T2'),
@@ -84,20 +95,43 @@ ORDER BY p.id, n.nivel, f.profundidade;
 
 UPDATE posicoes SET restrita = TRUE WHERE codigo = 'P6-N1-F1';
 
+-- Nicho: loja de eletrônicos e eletrodomésticos.
+-- Cada prateleira guarda uma categoria:
+--   P1 Áudio | P2 Celulares | P3 Informática | P4 Cozinha | P5 Linha Branca | P6 TV e Clima
+-- Padrão dos níveis:
+--   Nível 1 (chão): produtos pesados (20 kg ou mais) e volumosos
+--   Nível 2: produtos médios e leves, acesso manual
+--   Nível 3: produtos leves, só com empilhadeira
+-- Produto com 20 kg ou mais sempre pede empilhadeira, mesmo no chão.
+-- A última caixa fica sem posição, para testar a tela de armazenar.
 INSERT INTO caixas (codigo, descricao, categoria, quantidade, minimo, ean, peso_kg, altura_cm, largura_cm, profundidade_cm, posicao_id) VALUES
-  ('TN-5501', 'Tênis Nike Air Max 270', 'Calçados', 48, 10, '7891000055012', 1.8, 15, 22, 35, (SELECT id FROM posicoes WHERE codigo = 'P1-N1-F1')),
-  ('TV-8801', 'Smart TV Samsung 55" QLED', 'Eletrônicos', 6, 3, '7891000088014', 17.5, 71, 15, 123, (SELECT id FROM posicoes WHERE codigo = 'P4-N1-F1')),
-  ('NB-3201', 'Notebook Dell Inspiron 15', 'Eletrônicos', 12, 5, '7891000032013', 1.9, 4, 26, 38, (SELECT id FROM posicoes WHERE codigo = 'P1-N3-F1')),
-  ('CA-7710', 'Câmera Canon EOS R50', 'Eletrônicos', 3, 5, '7891000077106', 0.7, 8, 9, 12, (SELECT id FROM posicoes WHERE codigo = 'P2-N2-F1')),
-  ('CH-1142', 'Chuveiro Lorenzetti Advanced', 'Elétricos', 22, 8, '7891000011425', 0.9, 12, 20, 20, (SELECT id FROM posicoes WHERE codigo = 'P2-N1-F2')),
-  ('SD-5501', 'Sofá 3 Lugares Revestido', 'Móveis', 4, 2, '7891000055019', 42, 85, 90, 210, (SELECT id FROM posicoes WHERE codigo = 'P5-N1-F1')),
-  ('BL-0011', 'Blusa Polo Lacoste P', 'Vestuário', 65, 20, '7891000000115', 0.3, 3, 25, 30, (SELECT id FROM posicoes WHERE codigo = 'P3-N3-F2'));
+  ('AU-1010', 'Fone Bluetooth JBL Tune 520', 'Áudio', 80, 20, '7891000010100', 0.3, 20, 18, 8, (SELECT id FROM posicoes WHERE codigo = 'P1-N2-F1')),
+  ('AU-1020', 'Caixa de Som JBL Flip 6', 'Áudio', 45, 15, '7891000010201', 0.8, 10, 22, 10, (SELECT id FROM posicoes WHERE codigo = 'P1-N2-F2')),
+  ('AU-1030', 'Soundbar Samsung HW-B550', 'Áudio', 14, 5, '7891000010302', 4.5, 15, 95, 20, (SELECT id FROM posicoes WHERE codigo = 'P1-N1-F1')),
+  ('AU-1040', 'Headphone Sony WH-CH720N', 'Áudio', 30, 10, '7891000010403', 0.4, 22, 19, 9, (SELECT id FROM posicoes WHERE codigo = 'P1-N3-F1')),
+  ('CE-2010', 'Smartphone Samsung Galaxy A55', 'Celulares', 60, 20, '7891000020104', 0.5, 18, 10, 6, (SELECT id FROM posicoes WHERE codigo = 'P2-N2-F1')),
+  ('CE-2020', 'Smartphone Motorola Moto G84', 'Celulares', 52, 20, '7891000020205', 0.5, 18, 10, 6, (SELECT id FROM posicoes WHERE codigo = 'P2-N2-F2')),
+  ('CE-2030', 'Tablet Samsung Galaxy Tab A9', 'Celulares', 25, 8, '7891000020306', 0.9, 28, 19, 6, (SELECT id FROM posicoes WHERE codigo = 'P2-N3-F1')),
+  ('CE-2040', 'Smartwatch Xiaomi Redmi Watch 4', 'Celulares', 6, 10, '7891000020407', 0.2, 10, 10, 8, (SELECT id FROM posicoes WHERE codigo = 'P2-N3-F2')),
+  ('IN-3010', 'Notebook Dell Inspiron 15', 'Informática', 18, 6, '7891000030108', 2.4, 8, 45, 32, (SELECT id FROM posicoes WHERE codigo = 'P3-N2-F1')),
+  ('IN-3020', 'Monitor LG 24" Full HD', 'Informática', 16, 5, '7891000030209', 4.2, 42, 62, 14, (SELECT id FROM posicoes WHERE codigo = 'P3-N1-F1')),
+  ('IN-3030', 'Impressora HP Smart Tank 581', 'Informática', 9, 4, '7891000030300', 6.1, 25, 48, 40, (SELECT id FROM posicoes WHERE codigo = 'P3-N1-F2')),
+  ('IN-3040', 'Kit Teclado e Mouse Logitech MK235', 'Informática', 40, 12, '7891000030401', 0.7, 6, 46, 17, (SELECT id FROM posicoes WHERE codigo = 'P3-N3-F1')),
+  ('CZ-4010', 'Fogão Consul 4 Bocas', 'Cozinha', 7, 3, '7891000040102', 26.5, 90, 52, 62, (SELECT id FROM posicoes WHERE codigo = 'P4-N1-F1')),
+  ('CZ-4020', 'Micro-ondas Electrolux 20L', 'Cozinha', 12, 5, '7891000040203', 11.5, 30, 50, 38, (SELECT id FROM posicoes WHERE codigo = 'P4-N1-F2')),
+  ('CZ-4030', 'Air Fryer Mondial 4L', 'Cozinha', 28, 10, '7891000040304', 4.3, 34, 30, 30, (SELECT id FROM posicoes WHERE codigo = 'P4-N2-F1')),
+  ('CZ-4040', 'Liquidificador Philips Walita', 'Cozinha', 35, 10, '7891000040405', 2.1, 40, 22, 22, (SELECT id FROM posicoes WHERE codigo = 'P4-N2-F2')),
+  ('CZ-4050', 'Cafeteira Nespresso Vertuo', 'Cozinha', 4, 6, '7891000040506', 3.8, 35, 25, 40, (SELECT id FROM posicoes WHERE codigo = 'P4-N3-F1')),
+  ('LB-5010', 'Geladeira Brastemp Frost Free 375L', 'Linha Branca', 5, 2, '7891000050107', 68, 185, 65, 72, (SELECT id FROM posicoes WHERE codigo = 'P5-N1-F1')),
+  ('LB-5020', 'Lavadora Electrolux 12kg', 'Linha Branca', 6, 3, '7891000050208', 38, 105, 62, 68, (SELECT id FROM posicoes WHERE codigo = 'P5-N1-F2')),
+  ('LB-5030', 'Purificador de Água Electrolux', 'Linha Branca', 15, 5, '7891000050309', 3.2, 42, 28, 38, (SELECT id FROM posicoes WHERE codigo = 'P5-N2-F1')),
+  ('TV-6010', 'Smart TV Samsung 55" QLED', 'TV e Clima', 8, 3, '7891000060100', 17.5, 85, 135, 18, (SELECT id FROM posicoes WHERE codigo = 'P6-N1-F1')),
+  ('TV-6020', 'Smart TV LG 75" 4K', 'TV e Clima', 3, 2, '7891000060201', 32, 110, 180, 20, (SELECT id FROM posicoes WHERE codigo = 'P6-N1-F2')),
+  ('TV-6030', 'Ar Condicionado Midea 12000 BTU', 'TV e Clima', 10, 4, '7891000060302', 11, 30, 82, 28, (SELECT id FROM posicoes WHERE codigo = 'P6-N2-F1')),
+  ('CZ-4060', 'Aspirador de Pó Electrolux 1400W', 'Cozinha', 12, 4, '7891000040603', 5.6, 35, 32, 45, NULL);
 
 UPDATE posicoes SET ocupada = TRUE
 WHERE id IN (SELECT posicao_id FROM caixas WHERE posicao_id IS NOT NULL);
-
-INSERT INTO caixas (codigo, descricao, categoria, quantidade, minimo, ean, peso_kg, altura_cm, largura_cm, profundidade_cm) VALUES
-  ('AQ-2250', 'Ar Cond. Midea 12000 BTU', 'Eletrônicos', 8, 4, '7891000022504', 11, 28, 80, 30);
 
 INSERT INTO usuarios (login, senha_hash, nome, perfil) VALUES
   ('GT-1001', SHA2('1234', 256), 'Gustavo Lima', 'gestor'),
@@ -108,11 +142,55 @@ INSERT INTO pedidos (cliente, itens, peso_kg, prioridade, coletor, status, eta, 
   ('Americanas S.A.', 14, 8.2, 'P1', 'Ana P.', 'Iniciado', '16:45', 14),
   ('Shopee Brasil', 3, 3.1, 'P2', 'Marcos S.', 'Concluído', '15:30', 100),
   ('Mercado Livre', 21, 24.8, 'P1', 'Juliana F.', 'Em Andamento', '17:00', 33),
-  ('TOTVS Dist.', 6, 5.6, 'P2', 'Carlos M.', 'Concluído', '15:12', 100),
-  ('Lojas Renner', 18, 9.4, 'P2', 'Pedro A.', 'Iniciado', '17:30', 6),
-  ('Tok&Stok', 4, 38.2, 'P1', 'Juliana F.', 'Em Andamento', '16:20', 75),
-  ('iFood Mercado', 11, 7.8, 'P3', NULL, 'Pendente', '18:00', 0),
-  ('B2W Digital', 9, 6.1, 'P2', NULL, 'Pendente', '18:15', 0),
-  ('Via Varejo', 7, 4.9, 'P3', NULL, 'Pendente', '18:30', 0);
+  ('Casas Bahia', 6, 5.6, 'P2', 'Carlos M.', 'Concluído', '15:12', 100),
+  ('Fast Shop', 18, 9.4, 'P2', 'Pedro A.', 'Iniciado', '17:30', 7),
+  ('KaBuM!', 4, 38.2, 'P1', 'Rafael T.', 'Em Andamento', '16:20', 75),
+  ('Ponto', 11, 7.8, 'P3', NULL, 'Pendente', '18:00', 0),
+  ('Amazon Brasil', 9, 6.1, 'P2', NULL, 'Pendente', '18:15', 0),
+  ('Carrefour', 7, 4.9, 'P3', NULL, 'Pendente', '18:30', 0);
+
+INSERT INTO pedido_itens (pedido_id, caixa_id, quantidade) VALUES
+  (2251, (SELECT id FROM caixas WHERE codigo = 'AU-1010'), 3),
+  (2251, (SELECT id FROM caixas WHERE codigo = 'CE-2010'), 2),
+  (2251, (SELECT id FROM caixas WHERE codigo = 'CZ-4030'), 1),
+  (2251, (SELECT id FROM caixas WHERE codigo = 'TV-6010'), 1),
+  (2251, (SELECT id FROM caixas WHERE codigo = 'IN-3010'), 1),
+  (2252, (SELECT id FROM caixas WHERE codigo = 'CE-2020'), 4),
+  (2252, (SELECT id FROM caixas WHERE codigo = 'AU-1020'), 3),
+  (2252, (SELECT id FROM caixas WHERE codigo = 'IN-3040'), 4),
+  (2252, (SELECT id FROM caixas WHERE codigo = 'CZ-4040'), 2),
+  (2252, (SELECT id FROM caixas WHERE codigo = 'LB-5030'), 1),
+  (2253, (SELECT id FROM caixas WHERE codigo = 'AU-1040'), 2),
+  (2253, (SELECT id FROM caixas WHERE codigo = 'CE-2030'), 1),
+  (2254, (SELECT id FROM caixas WHERE codigo = 'LB-5010'), 1),
+  (2254, (SELECT id FROM caixas WHERE codigo = 'LB-5020'), 1),
+  (2254, (SELECT id FROM caixas WHERE codigo = 'CZ-4010'), 1),
+  (2254, (SELECT id FROM caixas WHERE codigo = 'CZ-4020'), 2),
+  (2254, (SELECT id FROM caixas WHERE codigo = 'TV-6030'), 1),
+  (2255, (SELECT id FROM caixas WHERE codigo = 'IN-3020'), 2),
+  (2255, (SELECT id FROM caixas WHERE codigo = 'IN-3030'), 1),
+  (2255, (SELECT id FROM caixas WHERE codigo = 'IN-3040'), 3),
+  (2256, (SELECT id FROM caixas WHERE codigo = 'CE-2010'), 5),
+  (2256, (SELECT id FROM caixas WHERE codigo = 'CE-2040'), 2),
+  (2256, (SELECT id FROM caixas WHERE codigo = 'AU-1010'), 6),
+  (2256, (SELECT id FROM caixas WHERE codigo = 'AU-1030'), 1),
+  (2257, (SELECT id FROM caixas WHERE codigo = 'TV-6020'), 1),
+  (2257, (SELECT id FROM caixas WHERE codigo = 'TV-6010'), 1),
+  (2257, (SELECT id FROM caixas WHERE codigo = 'AU-1030'), 2),
+  (2258, (SELECT id FROM caixas WHERE codigo = 'CZ-4030'), 3),
+  (2258, (SELECT id FROM caixas WHERE codigo = 'CZ-4040'), 4),
+  (2258, (SELECT id FROM caixas WHERE codigo = 'CZ-4050'), 1),
+  (2258, (SELECT id FROM caixas WHERE codigo = 'CZ-4020'), 1),
+  (2259, (SELECT id FROM caixas WHERE codigo = 'IN-3010'), 2),
+  (2259, (SELECT id FROM caixas WHERE codigo = 'IN-3020'), 2),
+  (2259, (SELECT id FROM caixas WHERE codigo = 'CE-2030'), 3),
+  (2260, (SELECT id FROM caixas WHERE codigo = 'LB-5010'), 1),
+  (2260, (SELECT id FROM caixas WHERE codigo = 'TV-6030'), 2),
+  (2260, (SELECT id FROM caixas WHERE codigo = 'LB-5030'), 2);
+
+-- O total de itens e o peso de cada pedido vêm dos produtos dele
+UPDATE pedidos p SET
+  itens = (SELECT SUM(pi.quantidade) FROM pedido_itens pi WHERE pi.pedido_id = p.id),
+  peso_kg = (SELECT SUM(pi.quantidade * c.peso_kg) FROM pedido_itens pi JOIN caixas c ON c.id = pi.caixa_id WHERE pi.pedido_id = p.id);
 
 UPDATE pedidos SET atualizado_em = NOW() - INTERVAL ((id * 7) % 10) * 7 MINUTE;

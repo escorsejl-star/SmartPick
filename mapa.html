@@ -6,6 +6,7 @@
   <title>Mapa do Armazém - SmartPick</title>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="modal.css">
 </head>
 <body>
   <aside class="sidebar" id="menu"></aside>
@@ -13,49 +14,96 @@
   <div class="principal">
     <header class="topo">
       <h2>Mapa do Armazém</h2>
-      <div><span id="data"></span><span class="status">● Sistema Ativo</span></div>
+      <div><span id="data"></span><span class="status">Sistema ativo</span></div>
     </header>
 
     <main class="pagina">
       <div class="mapa-tela">
 
         <div class="rota">
-          <h4>ROTA ATIVA · ORD-2251</h4>
-          <div class="card">
-            <div class="coletor-linha"><strong>Progresso</strong><strong class="mono amarelo" id="m-prog"></strong></div>
-            <div class="barra-fundo"><div class="barra-cheia" id="m-barra"></div></div>
-            <div class="nums">
-              <div><span id="m-dist"></span><small>Distância</small></div>
-              <div><span>12min</span><small>Tempo est.</small></div>
-            </div>
-          </div>
-          <div id="listaParadas"></div>
-          <h4 style="margin-top:20px">COLETORES ATIVOS</h4>
+          <h4>PEDIDOS EM COLETA</h4>
           <div id="listaColetores"></div>
+
+          <h4 style="margin-top:20px">PADRÃO DO ARMAZÉM</h4>
+          <div class="card padrao">
+            <p><b>Nível 1 (chão)</b> produtos pesados e volumosos</p>
+            <p><b>Nível 2</b> produtos médios e leves</p>
+            <p><b>Nível 3</b> só produtos leves</p>
+            <p class="padrao-regra"><span class="selo-acesso empilhadeira">Empilhadeira</span> nível 3, posição restrita ou produto com 20 kg ou mais</p>
+            <p class="padrao-regra"><span class="selo-acesso manual">Manual</span> todo o resto</p>
+          </div>
         </div>
+
         <div class="planta-area">
           <div class="cabeca">
             <div>
               <h1>Planta do Armazém</h1>
-              <p class="sub">1.000m² · Rota otimizada · 10 paradas</p>
+              <p class="sub" id="subtitulo">Carregando...</p>
             </div>
             <div class="legenda">
-              <span><i style="background:#10d9a0"></i>Coletado</span>
-              <span><i style="background:#f5b400"></i>Atual</span>
-              <span><i style="background:#7a6a20"></i>Pendente</span>
-              <span><i style="background:#17336b"></i>Livre</span>
+              <span><i style="background:#17336b;border:1px solid #3d68b8"></i>Prateleira</span>
+              <span><i style="background:#0c1c44"></i>Corredor largo</span>
+              <span><i style="background:#0c1c44;height:4px;vertical-align:middle"></i>Passagem estreita (só a pé)</span>
             </div>
           </div>
+
+          <div class="planta-linha">
           <div class="card planta-caixa"><div id="planta"></div></div>
+
           <div class="stats4">
-            <div class="card"><b class="amarelo">10</b><small>Paradas</small></div>
-            <div class="card"><b class="verde" id="s-coletados"></b><small>Coletados</small></div>
-            <div class="card"><b class="amarelo" id="s-pendentes"></b><small>Pendentes</small></div>
-            <div class="card"><b class="azul" id="s-dist"></b><small>Dist. rest.</small></div>
+            <div class="card"><b id="s-total"></b><small>Posições</small></div>
+            <div class="card"><b id="s-ocupadas"></b><small>Ocupadas</small></div>
+            <div class="card"><b id="s-livres"></b><small>Livres</small></div>
+            <div class="card"><b id="s-empilhadeira"></b><small>Produtos que pedem empilhadeira</small></div>
+          </div>
+          </div>
+
+          <div class="card itens-caixa">
+            <div class="itens-topo">
+              <h3>Todos os itens do armazém</h3>
+              <input type="text" id="busca" placeholder="Buscar produto, categoria ou posição...">
+            </div>
+            <table class="itens-tabela">
+              <thead><tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Posição</th><th>Peso</th><th>Qtd.</th><th>Acesso</th></tr></thead>
+              <tbody id="itens"></tbody>
+            </table>
+            <div class="paginas-itens">
+              <button class="btn-azul" id="btnAnterior" onclick="mudarPagina(-1)">Anterior</button>
+              <span id="paginaTexto"></span>
+              <button class="btn-azul" id="btnProxima" onclick="mudarPagina(1)">Próxima</button>
+            </div>
           </div>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Janela da prateleira, vista de frente -->
+  <div class="modal-fundo" id="modalPrateleira" hidden>
+    <div class="modal">
+      <h3 id="prateleiraTitulo"></h3>
+      <div id="prateleiraDesenho"></div>
+      <div class="modal-botoes">
+        <span class="espaco"></span>
+        <button type="button" class="btn-modal-cancelar" onclick="fecharJanelas()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Janela do coletor, com os produtos e o caminho do pedido -->
+  <div class="modal-fundo" id="modalColetor" hidden>
+    <div class="modal grande">
+      <h3 id="coletorTitulo"></h3>
+      <p class="sub" id="coletorResumo"></p>
+      <div class="coletor-janela">
+        <div id="coletorPlanta"></div>
+        <div id="coletorParadas"></div>
+      </div>
+      <div class="modal-botoes">
+        <span class="espaco"></span>
+        <button type="button" class="btn-modal-cancelar" onclick="fecharJanelas()">Fechar</button>
+      </div>
+    </div>
   </div>
 
   <script src="menu.js"></script>
