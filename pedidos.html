@@ -23,7 +23,11 @@
           <h1>Gestão de Pedidos</h1>
           <p class="sub">Atualizado agora</p>
         </div>
-        <button class="btn-amarelo" id="btnNovo">+ Novo Pedido</button>
+        <div class="acoes">
+          <button class="btn-azul" id="btnExcluir" disabled>Excluir</button>
+          <button class="btn-azul" id="btnEditar" disabled>Editar</button>
+          <button class="btn-amarelo" id="btnNovo">+ Novo Pedido</button>
+        </div>
       </div>
 
       <div class="resumo">
@@ -32,6 +36,12 @@
         <div class="card"><b id="r-andamento"></b><span>Em Andamento</span></div>
         <div class="card"><b id="r-pendentes"></b><span>Pendentes</span></div>
       </div>
+
+      <p class="prioridades">
+        <span class="chip p-P1">P1 · Urgente</span> sai primeiro
+        <span class="chip p-P2">P2 · Normal</span> sai no mesmo dia
+        <span class="chip p-P3">P3 · Baixa</span> pode esperar
+      </p>
 
       <div class="filtros" id="filtros">
         <input type="text" id="busca" placeholder="Buscar pedido ou cliente...">
@@ -45,7 +55,7 @@
       <div class="tabela-caixa">
         <table>
           <thead>
-            <tr><th>PEDIDO</th><th>CLIENTE</th><th>ITENS</th><th>PESO</th><th>PRIOR.</th><th>COLETOR</th><th>STATUS</th><th>ETA</th><th>PROGRESSO</th></tr>
+            <tr><th></th><th>PEDIDO</th><th>CLIENTE</th><th>ITENS</th><th>PESO</th><th>PRIORIDADE</th><th>COLETOR</th><th>STATUS</th><th>PREVISTO</th><th>PROGRESSO</th></tr>
           </thead>
           <tbody id="corpo"></tbody>
         </table>
@@ -58,29 +68,88 @@
     </main>
   </div>
 
-  <div class="modal-fundo" id="modalFundo" hidden>
-    <form class="modal" id="formPedido" novalidate>
-      <h3 id="modalTitulo">Novo pedido</h3>
+  <!-- Detalhes do pedido: abre ao clicar na linha -->
+  <div class="modal-fundo" id="modalDetalhe" hidden>
+    <div class="modal media">
+      <h3 id="detalheTitulo"></h3>
+      <div id="detalheDados"></div>
+      <table class="itens-tabela">
+        <thead><tr><th>Código</th><th>Produto</th><th>Qtd.</th><th>Posição</th><th>Peso</th><th>Situação</th></tr></thead>
+        <tbody id="detalheItens"></tbody>
+      </table>
+      <div class="modal-botoes">
+        <span class="espaco"></span>
+        <button type="button" class="btn-modal-cancelar" onclick="fecharJanelas()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Escolha do que editar -->
+  <div class="modal-fundo" id="modalEscolha" hidden>
+    <div class="modal pequena">
+      <h3 id="escolhaTitulo"></h3>
+      <div class="escolhas">
+        <button type="button" class="btn-azul" onclick="abrirDados(selecionado)">Editar dados<small>Cliente, prioridade e horário</small></button>
+        <button type="button" class="btn-azul" onclick="abrirProdutos(selecionado)">Editar produtos<small>Produtos e quantidades</small></button>
+      </div>
+      <div class="modal-botoes">
+        <span class="espaco"></span>
+        <button type="button" class="btn-modal-cancelar" onclick="fecharJanelas()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dados do pedido (novo ou edição). Status e coletor mudam sozinhos pela coleta. -->
+  <div class="modal-fundo" id="modalDados" hidden>
+    <form class="modal" id="formDados" novalidate>
+      <h3 id="dadosTitulo">Novo pedido</h3>
       <div class="modal-grade">
         <div class="inteiro"><label for="f-cliente">Cliente</label><input id="f-cliente" maxlength="100"></div>
-        <div><label for="f-itens">Itens</label><input id="f-itens" type="number" min="1"></div>
-        <div><label for="f-peso">Peso (kg)</label><input id="f-peso" type="number" step="0.01" min="0"></div>
         <div><label for="f-prioridade">Prioridade</label>
-          <select id="f-prioridade"><option>P1</option><option>P2</option><option>P3</option></select></div>
-        <div><label for="f-status">Status</label>
-          <select id="f-status"><option>Pendente</option><option>Iniciado</option><option>Em Andamento</option><option>Concluído</option></select></div>
-        <div><label for="f-coletor">Coletor</label><input id="f-coletor" maxlength="50" placeholder="Nenhum"></div>
+          <select id="f-prioridade">
+            <option value="P1">P1 · Urgente</option>
+            <option value="P2">P2 · Normal</option>
+            <option value="P3">P3 · Baixa</option>
+          </select></div>
         <div><label for="f-eta">Horário previsto</label><input id="f-eta" type="time"></div>
-        <div class="inteiro"><label for="f-progresso">Progresso (%)</label><input id="f-progresso" type="number" min="0" max="100"></div>
       </div>
-      <p class="modal-erro" id="modalErro" hidden></p>
+      <p class="modal-erro" id="dadosErro" hidden></p>
       <div class="modal-botoes">
-        <button type="button" class="btn-modal-excluir" id="btnExcluir">Excluir</button>
         <span class="espaco"></span>
-        <button type="button" class="btn-modal-cancelar" id="btnCancelar">Cancelar</button>
-        <button type="submit" class="btn-modal-salvar">Salvar</button>
+        <button type="button" class="btn-modal-cancelar" onclick="fecharJanelas()">Cancelar</button>
+        <button type="submit" class="btn-modal-salvar" id="btnSalvarDados">Salvar</button>
       </div>
     </form>
+  </div>
+
+  <!-- Produtos do pedido -->
+  <div class="modal-fundo" id="modalProdutos" hidden>
+    <div class="modal media">
+      <h3 id="produtosTitulo"></h3>
+      <h4 class="modal-secao">PRODUTOS DO PEDIDO</h4>
+      <table class="itens-tabela fixa">
+        <thead><tr><th>Código</th><th>Produto</th><th>Estoque</th><th>Qtd.</th><th></th></tr></thead>
+        <tbody id="produtosLista"></tbody>
+      </table>
+
+      <h4 class="modal-secao">ADICIONAR PRODUTO</h4>
+      <input id="p-busca" type="text" placeholder="Buscar por código, nome ou categoria...">
+      <table class="itens-tabela fixa">
+        <thead><tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Estoque</th><th></th></tr></thead>
+        <tbody id="catalogoLista"></tbody>
+      </table>
+      <div class="paginas-itens">
+        <button type="button" class="btn-azul" id="btnCatAnterior" onclick="mudarPaginaCatalogo(-1)">Anterior</button>
+        <span id="catPagina"></span>
+        <button type="button" class="btn-azul" id="btnCatProxima" onclick="mudarPaginaCatalogo(1)">Próxima</button>
+      </div>
+      <p class="modal-erro" id="produtosErro" hidden></p>
+      <div class="modal-botoes">
+        <span class="espaco"></span>
+        <button type="button" class="btn-modal-cancelar" onclick="fecharJanelas()">Cancelar</button>
+        <button type="button" class="btn-modal-salvar" id="btnSalvarProdutos">Salvar produtos</button>
+      </div>
+    </div>
   </div>
 
   <script src="menu.js"></script>

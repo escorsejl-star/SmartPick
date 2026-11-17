@@ -244,8 +244,9 @@ app.MapGet("/pedidos/itens", async () =>
 {
     using var db = AbrirConexao();
     var itens = await db.QueryAsync<ItemPedido>(
-        @"SELECT pi.pedido_id, COALESCE(c.codigo, CONCAT('CX-', LPAD(c.id, 4, '0'))) AS codigo,
-                 c.descricao, pi.quantidade, c.peso_kg,
+        @"SELECT pi.id, pi.pedido_id, c.id AS caixa_id,
+                 COALESCE(c.codigo, CONCAT('CX-', LPAD(c.id, 4, '0'))) AS codigo,
+                 c.descricao, pi.quantidade, pi.coletado, c.peso_kg,
                  po.codigo AS posicao, pr.codigo AS prateleira, po.nivel,
                  COALESCE(po.restrita, FALSE) AS restrita
           FROM pedido_itens pi
@@ -256,6 +257,32 @@ app.MapGet("/pedidos/itens", async () =>
     return Results.Ok(itens);
 });
 
+// Refaz as contas do pedido a partir dos produtos dele: total de itens, peso,
+// progresso e status. O status anda sozinho conforme o coletor coleta.
+async Task AtualizarPedido(MySqlConnection db, int id)
+{
+    await db.ExecuteAsync(
+        @"UPDATE pedidos p SET
+            itens = (SELECT COALESCE(SUM(pi.quantidade), 0) FROM pedido_itens pi WHERE pi.pedido_id = p.id),
+            peso_kg = (SELECT COALESCE(SUM(pi.quantidade * c.peso_kg), 0)
+                       FROM pedido_itens pi JOIN caixas c ON c.id = pi.caixa_id WHERE pi.pedido_id = p.id),
+            progresso = (SELECT COALESCE(ROUND(100 * SUM(pi.coletado * pi.quantidade) / SUM(pi.quantidade)), 0)
+                         FROM pedido_itens pi WHERE pi.pedido_id = p.id)
+          WHERE p.id = @id",
+        new { id });
+
+    var faltam = await db.ExecuteScalarAsync<int>(
+        "SELECT COUNT(*) FROM pedido_itens WHERE pedido_id = @id AND coletado = FALSE", new { id });
+    var coletados = await db.ExecuteScalarAsync<int>(
+        "SELECT COUNT(*) FROM pedido_itens WHERE pedido_id = @id AND coletado = TRUE", new { id });
+
+    if (coletados > 0 && faltam == 0)
+        await db.ExecuteAsync("UPDATE pedidos SET status = 'Concluído', progresso = 100 WHERE id = @id", new { id });
+    else if (coletados > 0)
+        await db.ExecuteAsync("UPDATE pedidos SET status = 'Em Andamento' WHERE id = @id", new { id });
+}
+
+// Pedido novo sempre começa como Pendente e sem produtos
 app.MapPost("/pedidos", async (DadosPedido dados) =>
 {
     var erro = dados.Validar();
@@ -264,17 +291,12 @@ app.MapPost("/pedidos", async (DadosPedido dados) =>
 
     using var db = AbrirConexao();
     var id = await db.ExecuteScalarAsync<int>(
-        @"INSERT INTO pedidos (cliente, itens, peso_kg, prioridade, coletor, status, eta, progresso)
-          VALUES (@Cliente, @Itens, @PesoKg, @Prioridade, NULLIF(@Coletor, ''), @Status, NULLIF(@Eta, ''), @Progresso);
+        @"INSERT INTO pedidos (cliente, itens, peso_kg, prioridade, status, eta, progresso)
+          VALUES (@Cliente, 0, 0, @Prioridade, 'Pendente', NULLIF(@Eta, ''), 0);
           SELECT LAST_INSERT_ID();",
         dados);
 
-    var pedido = await db.QuerySingleAsync<Pedido>(
-        @"SELECT id, cliente, itens, peso_kg, prioridade, coletor, status,
-                 TIME_FORMAT(eta, '%H:%i') AS eta, progresso
-          FROM pedidos WHERE id = @id",
-        new { id });
-    return Results.Created($"/pedidos/{id}", pedido);
+    return Results.Created($"/pedidos/{id}", new { id });
 });
 
 app.MapPut("/pedidos/{id}", async (int id, DadosPedido dados) =>
@@ -285,15 +307,89 @@ app.MapPut("/pedidos/{id}", async (int id, DadosPedido dados) =>
 
     using var db = AbrirConexao();
     var alterados = await db.ExecuteAsync(
-        @"UPDATE pedidos SET cliente = @Cliente, itens = @Itens, peso_kg = @PesoKg, prioridade = @Prioridade,
-                 coletor = NULLIF(@Coletor, ''), status = @Status, eta = NULLIF(@Eta, ''), progresso = @Progresso
+        @"UPDATE pedidos SET cliente = @Cliente, prioridade = @Prioridade, eta = NULLIF(@Eta, '')
           WHERE id = @id",
-        new { dados.Cliente, dados.Itens, dados.PesoKg, dados.Prioridade, dados.Coletor,
-              dados.Status, dados.Eta, dados.Progresso, id });
+        new { dados.Cliente, dados.Prioridade, dados.Eta, id });
     if (alterados == 0)
         return Results.NotFound(new { erro = "Pedido não encontrado." });
 
     return Results.Ok(new { mensagem = "Pedido atualizado." });
+});
+
+// Troca a lista de produtos do pedido. Só vale antes de a coleta começar.
+app.MapPut("/pedidos/{id}/itens", async (int id, List<ProdutoPedido> produtos) =>
+{
+    foreach (var produto in produtos)
+        if (produto.Quantidade < 1)
+            return Results.BadRequest(new { erro = "A quantidade precisa ser pelo menos 1." });
+
+    using var db = AbrirConexao();
+    await db.OpenAsync();
+
+    var status = await db.ExecuteScalarAsync<string>("SELECT status FROM pedidos WHERE id = @id", new { id });
+    if (status == null)
+        return Results.NotFound(new { erro = "Pedido não encontrado." });
+    if (status != "Pendente" && status != "Iniciado")
+        return Results.BadRequest(new { erro = "Não dá para mudar os produtos depois que a coleta começou." });
+
+    using var transacao = await db.BeginTransactionAsync();
+    await db.ExecuteAsync("DELETE FROM pedido_itens WHERE pedido_id = @id", new { id }, transacao);
+    foreach (var produto in produtos)
+        await db.ExecuteAsync(
+            "INSERT INTO pedido_itens (pedido_id, caixa_id, quantidade) VALUES (@id, @CaixaId, @Quantidade)",
+            new { id, produto.CaixaId, produto.Quantidade }, transacao);
+    await transacao.CommitAsync();
+
+    await AtualizarPedido(db, id);
+    return Results.Ok(new { mensagem = "Produtos do pedido atualizados." });
+});
+
+// O coletor escolhe o pedido: Pendente vira Iniciado
+app.MapPost("/pedidos/{id}/pegar", async (int id, PedidoPegar dados) =>
+{
+    if (string.IsNullOrWhiteSpace(dados.Coletor))
+        return Results.BadRequest(new { erro = "Informe o coletor." });
+
+    using var db = AbrirConexao();
+    var pedido = await db.QuerySingleOrDefaultAsync<Pedido>(
+        "SELECT id, cliente, itens, status FROM pedidos WHERE id = @id", new { id });
+    if (pedido == null)
+        return Results.NotFound(new { erro = "Pedido não encontrado." });
+    if (pedido.Status != "Pendente")
+        return Results.BadRequest(new { erro = "Este pedido já foi escolhido por outro coletor." });
+    if (pedido.Itens == 0)
+        return Results.BadRequest(new { erro = "Este pedido ainda não tem produtos." });
+
+    await db.ExecuteAsync(
+        "UPDATE pedidos SET coletor = @Coletor, status = 'Iniciado' WHERE id = @id",
+        new { dados.Coletor, id });
+    return Results.Ok(new { mensagem = "Pedido iniciado." });
+});
+
+// O coletor coleta um produto: o pedido vira Em Andamento e, no último, Concluído
+app.MapPost("/pedidos/{id}/itens/{itemId}/coletar", async (int id, int itemId) =>
+{
+    using var db = AbrirConexao();
+    await db.OpenAsync();
+
+    var status = await db.ExecuteScalarAsync<string>("SELECT status FROM pedidos WHERE id = @id", new { id });
+    if (status != "Iniciado" && status != "Em Andamento")
+        return Results.BadRequest(new { erro = "Este pedido não está em coleta." });
+
+    var item = await db.QuerySingleOrDefaultAsync<ProdutoPedido>(
+        @"SELECT caixa_id, quantidade FROM pedido_itens
+          WHERE id = @itemId AND pedido_id = @id AND coletado = FALSE",
+        new { itemId, id });
+    if (item == null)
+        return Results.BadRequest(new { erro = "Produto não encontrado ou já coletado." });
+
+    // marca como coletado e tira as unidades do estoque
+    await db.ExecuteAsync("UPDATE pedido_itens SET coletado = TRUE WHERE id = @itemId", new { itemId });
+    await db.ExecuteAsync(
+        "UPDATE caixas SET quantidade = GREATEST(quantidade - @Quantidade, 0) WHERE id = @CaixaId", item);
+
+    await AtualizarPedido(db, id);
+    return Results.Ok(new { mensagem = "Produto coletado." });
 });
 
 app.MapDelete("/pedidos/{id}", async (int id) =>

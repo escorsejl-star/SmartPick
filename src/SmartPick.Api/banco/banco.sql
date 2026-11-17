@@ -73,6 +73,7 @@ CREATE TABLE pedido_itens (
   pedido_id INT NOT NULL,
   caixa_id INT NOT NULL,
   quantidade INT NOT NULL DEFAULT 1,
+  coletado BOOLEAN NOT NULL DEFAULT FALSE,
   FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
   FOREIGN KEY (caixa_id) REFERENCES caixas(id) ON DELETE CASCADE,
   CHECK (quantidade > 0)
@@ -139,11 +140,11 @@ INSERT INTO usuarios (login, senha_hash, nome, perfil) VALUES
 
 INSERT INTO pedidos (cliente, itens, peso_kg, prioridade, coletor, status, eta, progresso) VALUES
   ('Magazine Luiza', 8, 12.4, 'P1', 'Carlos M.', 'Em Andamento', '16:10', 50),
-  ('Americanas S.A.', 14, 8.2, 'P1', 'Ana P.', 'Iniciado', '16:45', 14),
+  ('Americanas S.A.', 14, 8.2, 'P1', 'Ana P.', 'Iniciado', '16:45', 0),
   ('Shopee Brasil', 3, 3.1, 'P2', 'Marcos S.', 'Concluído', '15:30', 100),
   ('Mercado Livre', 21, 24.8, 'P1', 'Juliana F.', 'Em Andamento', '17:00', 33),
   ('Casas Bahia', 6, 5.6, 'P2', 'Carlos M.', 'Concluído', '15:12', 100),
-  ('Fast Shop', 18, 9.4, 'P2', 'Pedro A.', 'Iniciado', '17:30', 7),
+  ('Fast Shop', 18, 9.4, 'P2', 'Pedro A.', 'Iniciado', '17:30', 0),
   ('KaBuM!', 4, 38.2, 'P1', 'Rafael T.', 'Em Andamento', '16:20', 75),
   ('Ponto', 11, 7.8, 'P3', NULL, 'Pendente', '18:00', 0),
   ('Amazon Brasil', 9, 6.1, 'P2', NULL, 'Pendente', '18:15', 0),
@@ -188,9 +189,19 @@ INSERT INTO pedido_itens (pedido_id, caixa_id, quantidade) VALUES
   (2260, (SELECT id FROM caixas WHERE codigo = 'TV-6030'), 2),
   (2260, (SELECT id FROM caixas WHERE codigo = 'LB-5030'), 2);
 
--- O total de itens e o peso de cada pedido vêm dos produtos dele
+-- O que já foi coletado: tudo nos pedidos concluídos e uma parte nos que estão em andamento
+UPDATE pedido_itens SET coletado = TRUE WHERE pedido_id IN (2253, 2255);
+UPDATE pedido_itens SET coletado = TRUE
+WHERE pedido_id = 2251 AND caixa_id IN (SELECT id FROM caixas WHERE codigo IN ('AU-1010', 'CZ-4030'));
+UPDATE pedido_itens SET coletado = TRUE
+WHERE pedido_id = 2254 AND caixa_id IN (SELECT id FROM caixas WHERE codigo = 'CZ-4020');
+UPDATE pedido_itens SET coletado = TRUE
+WHERE pedido_id = 2257 AND caixa_id IN (SELECT id FROM caixas WHERE codigo IN ('TV-6020', 'TV-6010'));
+
+-- O total de itens, o peso e o progresso de cada pedido vêm dos produtos dele
 UPDATE pedidos p SET
   itens = (SELECT SUM(pi.quantidade) FROM pedido_itens pi WHERE pi.pedido_id = p.id),
-  peso_kg = (SELECT SUM(pi.quantidade * c.peso_kg) FROM pedido_itens pi JOIN caixas c ON c.id = pi.caixa_id WHERE pi.pedido_id = p.id);
+  peso_kg = (SELECT SUM(pi.quantidade * c.peso_kg) FROM pedido_itens pi JOIN caixas c ON c.id = pi.caixa_id WHERE pi.pedido_id = p.id),
+  progresso = (SELECT ROUND(100 * SUM(pi.coletado * pi.quantidade) / SUM(pi.quantidade)) FROM pedido_itens pi WHERE pi.pedido_id = p.id);
 
 UPDATE pedidos SET atualizado_em = NOW() - INTERVAL ((id * 7) % 10) * 7 MINUTE;

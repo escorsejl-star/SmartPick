@@ -195,8 +195,7 @@ function montarRota(pedido) {
   pontos.push({ x: pontoX(POR_FILEIRA), y: pontoY(atual.lin) });
   pontos.push({ x: pontoX(POR_FILEIRA), y: pontoY(fileiras) + 30 });
 
-  // Marca o que já foi coletado, seguindo o progresso do pedido
-  var coletados = Math.round(pedido.progresso * pedido.itens / 100);
+  // Marca as paradas já feitas, usando o que o coletor já coletou
   var numeros = {};
   var achouAtual = false;
   for (var p = 0; p < paradas.length; p++) {
@@ -204,13 +203,8 @@ function montarRota(pedido) {
     var tudoFeito = true;
     for (var j = 0; j < paradas[p].itens.length; j++) {
       var it = paradas[p].itens[j];
-      it.feito = coletados >= it.quantidade;
-      if (it.feito) {
-        coletados -= it.quantidade;
-      } else {
-        coletados = 0;
-        tudoFeito = false;
-      }
+      it.feito = it.coletado;
+      if (!it.feito) tudoFeito = false;
     }
     paradas[p].feita = tudoFeito;
     paradas[p].atual = false;
