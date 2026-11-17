@@ -1,4 +1,4 @@
-"""Protótipo de cálculo de rotas do SmartPick (Sprint 1, Equipe 2).
+"""Cálculo de rotas do SmartPick (Equipe 2).
 
 Lê o arquivo dados/grafo_armazem.json, monta dois grafos (manual e
 empilhadeira) e calcula o menor caminho com Dijkstra.
@@ -10,12 +10,20 @@ Como rodar:
 
 import heapq
 import json
+import re
 from pathlib import Path
 
 import networkx as nx
 
 CAMINHO_JSON = Path(__file__).parent / "dados" / "grafo_armazem.json"
 TIPOS_ACESSO = ("manual", "empilhadeira")
+
+# Aceita "C05", "C-05" e "C-05-P2" (formato do front-end) como o vértice C05.
+_PADRAO_ENDERECO = re.compile(r"^([A-Za-z])-?(\d{1,2})(?:-P\d)?$")
+
+
+class ErroDeDados(ValueError):
+    """Dados que não batem com o armazém (corredor, posição ou nível inexistente)."""
 
 
 def carregar_dados(caminho=CAMINHO_JSON):
@@ -47,6 +55,32 @@ def montar_grafos(dados):
     return {tipo: montar_grafo(dados, tipo) for tipo in TIPOS_ACESSO}
 
 
+def vertice_da_posicao(dados, corredor, posicao):
+    """Vértice do corredor onde fica uma posição (corredor "C", posição 5 -> "C05")."""
+    corredor = str(corredor).strip().upper()
+    if corredor not in dados["corredores"]:
+        raise ErroDeDados(f"Corredor inexistente: {corredor}")
+    if not 1 <= posicao <= dados["posicoesPorCorredor"]:
+        raise ErroDeDados(
+            f"Posição inexistente no corredor {corredor}: {posicao} "
+            f"(de 1 a {dados['posicoesPorCorredor']})"
+        )
+    return f"{corredor}{posicao:02d}"
+
+
+def normalizar_vertice(texto):
+    """Converte endereços como "c-05" ou "C-05-P2" para o id do vértice ("C05")."""
+    texto = str(texto).strip()
+    if texto.lower() == "entrada":
+        return "Entrada"
+    if texto.lower() in ("saida", "saída"):
+        return "Saida"
+    encontrado = _PADRAO_ENDERECO.match(texto)
+    if encontrado:
+        return f"{encontrado.group(1).upper()}{int(encontrado.group(2)):02d}"
+    return texto
+
+
 def calcular_rota(grafos, origem, destino, tipo):
     """Calcula o menor caminho usando o Dijkstra do NetworkX.
 
@@ -64,8 +98,20 @@ def calcular_rota(grafos, origem, destino, tipo):
     return {"rota": rota, "distancia": distancia}
 
 
+def menores_caminhos(grafos, origem, tipo):
+    """Menores caminhos da origem até todos os vértices alcançáveis.
+
+    Devolve (distancias, caminhos): dois dicionários indexados pelo vértice de
+    destino. Vértices que o acesso não alcança não aparecem nos dicionários.
+    """
+    grafo = grafos[tipo]
+    if origem not in grafo:
+        raise ValueError(f"Vértice inexistente: {origem}")
+    return nx.single_source_dijkstra(grafo, origem, weight="weight")
+
+
 def dijkstra_didatico(grafo, origem, destino):
-    """Dijkstra escrito à mão, para entender o algoritmo (Semana 2).
+    """Dijkstra escrito à mão, para entender o algoritmo.
 
     Mantém uma fila de prioridade com os vértices ainda não visitados.
     Sempre visita o vértice com a menor distância conhecida até a origem.
@@ -101,13 +147,17 @@ def main():
     dados = carregar_dados()
     grafos = montar_grafos(dados)
 
-    print("Rotas a partir da Entrada até cada prateleira\n")
-    for prateleira, vertice in dados["prateleiras"].items():
-        print(f"{prateleira} (acesso por {vertice})")
+    print("Rotas a partir da Entrada (corredor-posição)\n")
+    for corredor, posicao in [("A", 10), ("A", 1), ("C", 5), ("E", 3), ("B", 5), ("F", 10)]:
+        vertice = vertice_da_posicao(dados, corredor, posicao)
+        print(f"{corredor}-{posicao:02d}")
         for tipo in TIPOS_ACESSO:
             resultado = calcular_rota(grafos, "Entrada", vertice, tipo)
-            caminho = " -> ".join(resultado["rota"])
-            print(f"  {tipo:<12} {resultado['distancia']:>3} m  {caminho}")
+            if resultado is None:
+                print(f"  {tipo:<12} sem acesso")
+            else:
+                caminho = " -> ".join(resultado["rota"])
+                print(f"  {tipo:<12} {resultado['distancia']:>3} m  {caminho}")
         print()
 
 
