@@ -7,7 +7,7 @@ Anotações sobre o algoritmo usado no módulo de rotas, com exemplos do grafo d
 Um grafo é um conjunto de **vértices** (pontos) ligados por **arestas** (linhas).
 
 No SmartPick:
-- cada **corredor** (ou ponto de passagem) é um vértice: `L1`, `T1`, `M1`, `Entrada`, `Saida` e assim por diante;
+- cada **corredor** (ou ponto de passagem) é um vértice: `A05`, `C10`, `Entrada`, `Saida` e assim por diante (a letra é o corredor e o número é a posição);
 - cada **ligação** entre dois corredores é uma aresta.
 
 As ligações do armazém funcionam nos dois sentidos, então o grafo é **não direcionado** (`nx.Graph` no NetworkX).
@@ -16,7 +16,7 @@ As ligações do armazém funcionam nos dois sentidos, então o grafo é **não 
 
 O peso é o "custo" de usar aquela ligação. No SmartPick, o peso é a **distância em metros**.
 
-Exemplo: a aresta `L3 - B1` pesa 8, ou seja, andar de `L3` até `B1` são 8 metros.
+Exemplo: a aresta `A05 - A06` pesa 2, ou seja, andar da posição 5 até a posição 6 do corredor A são 2 metros.
 
 Importante: o peso da **caixa** (em kg) não é peso de aresta. Ele só é usado na escolha da posição (veja `regras_de_negocio.md`).
 
@@ -50,31 +50,29 @@ enquanto houver vértice não visitado:
 
 A função `dijkstra_didatico` do arquivo `prototipo_rota.py` faz exatamente isso, usando uma fila de prioridade (`heapq`) para achar rápido o vértice de menor distância.
 
-## 5. Exemplo passo a passo: Entrada até T1 (acesso manual)
+## 5. Exemplo passo a passo
+
+Para ver o algoritmo em ação, usamos um grafo pequeno: `S` (origem), `A`, `B` e `C`, com as ligações `S - A` (4), `S - B` (2), `B - A` (1), `A - C` (5) e `B - C` (8). Queremos o menor caminho de `S` até `C`.
 
 | Passo | Vértice visitado | Distância | Atualizações feitas |
 |---|---|---|---|
-| 1 | Entrada | 0 | L3 = 4 |
-| 2 | L3 | 4 | L2 = 12, B1 = 12 |
-| 3 | L2 | 12 | L1 = 20, M1 = 20 |
-| 4 | B1 | 12 | B2 = 19, M1 = 18 (melhorou de 20) |
-| 5 | M1 | 18 | M2 = 25, T1 = 24 |
-| 6 | B2 | 19 | R3 = 27 (M2 continua 25) |
-| 7 | L1 | 20 | T1 continua 24 (20 + 8 = 28 é pior) |
-| 8 | T1 | 24 | chegamos ao destino |
+| 1 | S | 0 | A = 4, B = 2 |
+| 2 | B | 2 | A = 3 (melhorou de 4), C = 10 |
+| 3 | A | 3 | C = 8 (melhorou de 10) |
+| 4 | C | 8 | chegamos ao destino |
 
-Voltando do destino pelas anotações: `T1 <- M1 <- B1 <- L3 <- Entrada`. Caminho final: **Entrada, L3, B1, M1, T1, com 24 m**.
+Voltando do destino pelas anotações: `C <- A <- B <- S`. Caminho final: **S, B, A, C, com 8**. Note que o caminho direto `S - A - C` (9) e o `S - B - C` (10) são piores.
 
-(`L2` e `B1` empatam em 12. A ordem entre eles não muda o resultado.)
+No SmartPick acontece o mesmo, só que com 62 vértices (veja a seção 8).
 
 ## 6. Por que dois grafos
 
-O armazém tem passagens estreitas que só o operador a pé usa. Em vez de complicar o algoritmo com exceções, montamos **dois grafos**:
+O armazém tem corredores onde só o operador a pé circula. Em vez de complicar o algoritmo com exceções, montamos **dois grafos**:
 
 - grafo **manual**: todas as arestas;
-- grafo **empilhadeira**: só as arestas cujo campo `acesso` inclui `empilhadeira`.
+- grafo **empilhadeira**: só as arestas cujo campo `acesso` inclui `empilhadeira` (no exemplo, os corredores C e E, os corredores transversais e as ligações da entrada e da saída).
 
-Para o mesmo destino, o resultado pode ser diferente. Entrada até T1 dá 24 m a pé e 28 m de empilhadeira, porque a empilhadeira não passa por `B1 - M1 - T1`.
+Para o mesmo destino, o resultado pode ser diferente. Entrada até a posição A-01 dá 22 m a pé (sobe pelo corredor A) e 46 m de empilhadeira, que não entra no corredor A e precisa dar a volta pelo corredor C. E há destinos que a empilhadeira não alcança, como a posição B-05.
 
 ## 7. Cola do NetworkX
 
@@ -82,12 +80,12 @@ Para o mesmo destino, o resultado pode ser diferente. Entrada até T1 dá 24 m a
 import networkx as nx
 
 g = nx.Graph()                                  # grafo não direcionado
-g.add_edge("L3", "B1", weight=8)                # cria a aresta (e os vértices, se preciso)
+g.add_edge("A05", "A06", weight=2)                # cria a aresta (e os vértices, se preciso)
 
-nx.dijkstra_path(g, "Entrada", "T1", weight="weight")          # lista com o caminho
-nx.dijkstra_path_length(g, "Entrada", "T1", weight="weight")   # distância total
+nx.dijkstra_path(g, "Entrada", "C05", weight="weight")          # lista com o caminho
+nx.dijkstra_path_length(g, "Entrada", "C05", weight="weight")   # distância total
 
-g.neighbors("B1")        # vizinhos de um vértice
+g.neighbors("A05")        # vizinhos de um vértice
 g.nodes                  # todos os vértices
 g.edges(data=True)       # todas as arestas com os pesos
 nx.is_connected(g)       # True se dá para ir de qualquer vértice a qualquer outro
@@ -97,16 +95,17 @@ Se não existir caminho, o NetworkX lança `nx.NetworkXNoPath`. O protótipo tra
 
 ## 8. Conferindo os exemplos no código
 
-`python prototipo_rota.py` mostra as rotas da Entrada até cada prateleira. Alguns resultados do grafo de exemplo:
+`python prototipo_rota.py` mostra as rotas da Entrada até algumas posições. Alguns resultados do grafo de exemplo:
 
 | Destino | Manual | Empilhadeira |
 |---|---|---|
-| T1 (prateleira P1) | 24 m | 28 m |
-| T2 (prateleira P2) | 31 m | 35 m |
-| R1 (prateleira P3) | 39 m | 43 m |
+| A-10 | 4 m | 4 m |
+| A-01 | 22 m | 46 m |
+| C-05 | 26 m | 26 m |
+| B-05 | 20 m | sem acesso |
 
-O teste `test_dijkstra_didatico_igual_ao_networkx` compara o Dijkstra escrito à mão (`dijkstra_didatico`) com o do NetworkX para todos os pares de vértices.
+O teste `test_dijkstra_didatico_igual_ao_networkx` compara o Dijkstra escrito à mão (`dijkstra_didatico`) com o do NetworkX para todos os pares de vértices, nos dois grafos.
 
-Sensibilidade a uma distância: se a aresta `T1 - M1` passar de 6 para 20 m no JSON, a rota manual até P1 deixa de usar a passagem estreita e fica igual à da empilhadeira (28 m).
+Para mudar o armazém (distâncias, corredores liberados para a empilhadeira), altere as constantes do `gerar_grafo.py` e rode `python gerar_grafo.py`. Depois rode os testes: se a mudança for proposital, atualize os valores esperados.
 
 O peso da caixa não entra no grafo. Ele é usado só na escolha da posição, descrita em `regras_de_negocio.md`.
