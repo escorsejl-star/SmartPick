@@ -164,10 +164,16 @@ nav a.ativo svg {
 }
 
 .lista {
-  width: 280px;
-  overflow-y: auto;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
   background: #08142f;
   border-right: 1px solid #1a2d5c;
+}
+
+#itens {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .lista-topo {
@@ -526,4 +532,105 @@ nav a.ativo svg {
 
 .sair:hover {
   color: #ff8a8a;
+}
+
+/* Filtro por prateleira, páginas da lista e janela de prateleira */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.filtros button {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #8fb0e0;
+  background: #0e2250;
+  border: 1px solid #22407a;
+  border-radius: 6px;
+}
+
+.filtros button:hover {
+  color: white;
+}
+
+.filtros button.ativo {
+  color: #f5b400;
+  border-color: #f5b400;
+}
+
+.filtros button.sem {
+  color: #ff9a3c;
+}
+
+.filtros button.sem.ativo {
+  border-color: #ff9a3c;
+}
+
+.paginas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #6f9bd6;
+  border-top: 1px solid #1a2d5c;
+}
+
+.paginas button {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #8fb0e0;
+  background: #0e2250;
+  border: 1px solid #22407a;
+  border-radius: 6px;
+}
+
+.paginas button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.lista-vazia {
+  padding: 20px 16px;
+  font-size: 13px;
+  color: #6f9bd6;
+}
+
+.selo-SEM {
+  color: #ff9a3c;
+  background: #2e2218;
+}
+
+.nivel-SEM {
+  color: #ff9a3c;
+  background: #2e2218;
+  border-color: #7a4a1a;
+}
+
+.modal-texto {
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #8fb0e0;
+}
+
+.modal-texto b {
+  color: white;
+}
+
+.novo-endereco {
+  margin: 16px 0 0 0;
+}
+
+.modal input:disabled {
+  color: #8fb0e0;
+  opacity: 1;
 }

@@ -26,10 +26,16 @@
 
       <section class="lista">
         <div class="lista-topo">
-          <h3>Catálogo SKUs <span class="contador" id="contador">8</span></h3>
-          <input type="text" id="busca" placeholder="Buscar SKU...">
+          <h3>Catálogo SKUs <span class="contador" id="contador"></span></h3>
+          <input type="text" id="busca" placeholder="Buscar código, nome ou categoria...">
+          <div class="filtros" id="filtros"></div>
         </div>
         <div id="itens"></div>
+        <div class="paginas">
+          <button id="btnAnterior" onclick="mudarPagina(-1)">Anterior</button>
+          <span id="pagina"></span>
+          <button id="btnProxima" onclick="mudarPagina(1)">Próxima</button>
+        </div>
       </section>
 
       <section class="detalhe">
@@ -42,7 +48,7 @@
           <div class="botoes">
             <button class="btn-editar" id="btnExcluir">Excluir</button>
             <button class="btn-editar" id="btnEditar">Editar</button>
-            <button class="btn-editar" id="btnArmazenar" hidden>Armazenar</button>
+            <button class="btn-editar" id="btnPrateleira">Prateleira</button>
             <button class="btn-salvar" id="btnNovo">+ Novo</button>
           </div>
         </div>
@@ -108,30 +114,29 @@
       <div class="modal-botoes">
         <span class="espaco"></span>
         <button type="button" class="btn-modal-cancelar" id="btnCancelar">Cancelar</button>
-        <button type="submit" class="btn-modal-salvar">Salvar</button>
+        <button type="submit" class="btn-modal-salvar" id="btnSalvarProduto">Salvar</button>
       </div>
     </form>
   </div>
 
-  <div class="modal-fundo" id="modalArmazenar" hidden>
-    <form class="modal" id="formArmazenar" novalidate>
-      <h3 id="armazenarTitulo">Armazenar caixa</h3>
+  <!-- Prateleira do produto: associar, mudar ou deixar sem -->
+  <div class="modal-fundo" id="modalPrateleira" hidden>
+    <form class="modal" id="formPrateleira" novalidate>
+      <h3 id="prateleiraTitulo"></h3>
+      <p class="modal-texto" id="prateleiraAtual"></p>
       <div class="modal-grade">
-        <div><label for="a-nivel">Nível</label>
-          <select id="a-nivel">
-            <option value="">Todos</option>
-            <option value="1">1 (chão)</option>
-            <option value="2">2</option>
-            <option value="3">3 (alto)</option>
-          </select>
-        </div>
-        <div><label for="a-posicao">Posição livre</label><select id="a-posicao"></select></div>
+        <div><label for="a-prateleira">Prateleira</label><select id="a-prateleira"></select></div>
+        <div><label for="a-zona">Zona</label><input id="a-zona" disabled></div>
+        <div><label for="a-nivel">Nível</label><select id="a-nivel"></select></div>
+        <div><label for="a-posicao">Posição</label><select id="a-posicao"></select></div>
       </div>
-      <p class="modal-erro" id="armazenarErro" hidden></p>
+      <p class="modal-texto novo-endereco" id="a-endereco"></p>
+      <p class="modal-erro" id="prateleiraErro" hidden></p>
       <div class="modal-botoes">
+        <button type="button" class="btn-modal-excluir" id="btnSemPrateleira">Deixar sem prateleira</button>
         <span class="espaco"></span>
-        <button type="button" class="btn-modal-cancelar" id="btnCancelarArmazenar">Cancelar</button>
-        <button type="submit" class="btn-modal-salvar">Armazenar</button>
+        <button type="button" class="btn-modal-cancelar" id="btnCancelarPrateleira">Cancelar</button>
+        <button type="submit" class="btn-modal-salvar">Salvar</button>
       </div>
     </form>
   </div>

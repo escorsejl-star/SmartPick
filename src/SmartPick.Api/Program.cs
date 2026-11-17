@@ -137,9 +137,6 @@ app.MapPost("/armazenar", async (PedidoArmazenar pedido) =>
         "SELECT * FROM caixas WHERE id = @CaixaId", pedido);
     if (caixa == null)
         return Results.NotFound(new { erro = "Caixa não encontrada." });
-    if (caixa.PosicaoId != null)
-        return Results.BadRequest(new { erro = "Esta caixa já está armazenada." });
-
     var posicao = await db.QuerySingleOrDefaultAsync<Posicao>(
         "SELECT * FROM posicoes WHERE id = @PosicaoId", pedido);
     if (posicao == null)
@@ -150,6 +147,9 @@ app.MapPost("/armazenar", async (PedidoArmazenar pedido) =>
         return Results.BadRequest(new { erro = "Caixa com 20 kg ou mais não pode ficar no nível 3." });
 
     using var transacao = await db.BeginTransactionAsync();
+    // se a caixa já estava em outra posição, essa posição fica livre de novo
+    await db.ExecuteAsync(
+        "UPDATE posicoes SET ocupada = FALSE WHERE id = @PosicaoId", new { caixa.PosicaoId }, transacao);
     await db.ExecuteAsync(
         "UPDATE caixas SET posicao_id = @PosicaoId WHERE id = @CaixaId", pedido, transacao);
     await db.ExecuteAsync(
@@ -163,6 +163,29 @@ app.MapPost("/armazenar", async (PedidoArmazenar pedido) =>
         posicaoId = posicao.Id,
         posicao = posicao.Codigo
     });
+});
+
+// Tira a caixa da prateleira. Ela continua no catálogo, só fica sem posição.
+app.MapPost("/caixas/{id}/tirar-da-prateleira", async (int id) =>
+{
+    using var db = AbrirConexao();
+    await db.OpenAsync();
+
+    var caixa = await db.QuerySingleOrDefaultAsync<Caixa>(
+        "SELECT * FROM caixas WHERE id = @id", new { id });
+    if (caixa == null)
+        return Results.NotFound(new { erro = "Caixa não encontrada." });
+    if (caixa.PosicaoId == null)
+        return Results.BadRequest(new { erro = "Esta caixa já está sem prateleira." });
+
+    using var transacao = await db.BeginTransactionAsync();
+    await db.ExecuteAsync(
+        "UPDATE posicoes SET ocupada = FALSE WHERE id = @PosicaoId", new { caixa.PosicaoId }, transacao);
+    await db.ExecuteAsync(
+        "UPDATE caixas SET posicao_id = NULL WHERE id = @id", new { id }, transacao);
+    await transacao.CommitAsync();
+
+    return Results.Ok(new { mensagem = "Caixa retirada da prateleira." });
 });
 
 app.MapGet("/catalogo", async () =>
